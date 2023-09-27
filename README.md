@@ -35,6 +35,7 @@ If the install raises the error `Failed building wheel for pyworld`, run `python
 
 - Create a Twitch account to be used as a bot
 - [Create a new app](https://dev.twitch.tv/console/apps/create). Set a name, `Loyalty Tool` as category, and (if you don't want to use it) `http://localhost` as OAuth redirect
+- In order to give permissions to the app in some channel you'll have to enter to the following link, and allow it: `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=<app id>&redirect_uri=http://localhost&scope=channel%3Aread%3Aredemptions+channel%3Amoderate`
 
 ##### Config setup
 
@@ -43,6 +44,8 @@ The first time you run the script it will raise a token exception, and it will g
 You'll have to edit `config.json`:
 
 - Remove all commands in `command_whitelist`; leave only `"command_whitelist": []`
+- Set the app id in `client_id`
+- Set the oauth token in `"oauth": "oauth:<token here>"`
 
 #### Website audio player
 
