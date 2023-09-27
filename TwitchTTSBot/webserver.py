@@ -10,7 +10,7 @@ class http_server:
     def __init__(self, arg: Any, port: int = 7890, only_local: bool = False):
         def handler(*args):
             AudioServerWebsite(arg, *args)
-        server = HTTPServer(('localhost' if only_local else '0.0.0.0', port), handler)
+        server = HTTPServer(('localhost' if only_local else '', port), handler)
         # HTTPS
         server.socket = ssl.wrap_socket(server.socket,
                                         server_side=True,

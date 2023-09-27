@@ -47,3 +47,7 @@ You'll have to edit `config.json`:
 #### Website audio player
 
 TODO
+
+##### Generating the SSL credentials
+
+Inside the `TwitchTTSBot/` folder, run `openssl req -new -x509 -keyout key.pem -out server.pem -days 365 -nodes`.
