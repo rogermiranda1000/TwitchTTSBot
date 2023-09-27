@@ -1,2 +1,4 @@
+**/__pycache__/
+
 rvc-tts-webui/*
 !rvc-tts-webui/infere.py

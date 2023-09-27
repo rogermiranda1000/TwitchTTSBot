@@ -103,18 +103,6 @@ def infere(model: str, text: str, out: str, speed: int = 0, transpose: int = 0, 
     audio = result[-1]
     shutil.move(audio, out)
 
-def launch_web_browser():
-    global web_browser_pid
-    process = subprocess.Popen(["python3", "app.py"], stdout=subprocess.PIPE, 
-                                shell=True, preexec_fn=os.setsid) 
-    web_browser_pid = process.pid
-
-    sleep(15) # TODO get when the website is ready instead of waiting
-
-def stop_web_browser():
-    global web_browser_pid
-    os.killpg(os.getpgid(web_browser_pid), signal.SIGTERM)
-
 def main():
     argParser = ArgumentParser()
     argParser.add_argument("-m", "--model", required=True)

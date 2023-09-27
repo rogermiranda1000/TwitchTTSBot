@@ -11,7 +11,7 @@ A Twitch bot that reads point redemptions.
 
 #### RVC-based TTS
 
-Install:
+##### Install
 
 - Get the repo: `git clone https://github.com/litagin02/rvc-tts-webui.git && cd rvc-tts-webui`
 - Download the models: `curl -L -O https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/hubert_base.pt ; curl -L -O https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/rmvpe.pt`
@@ -19,7 +19,7 @@ Install:
 
 If the install raises the error `Failed building wheel for pyworld`, run `python3 -m pip install numpy pyworld --no-build-isolation`
 
-Get the model:
+##### Get the model
 
 - Train a RVC model
 - Set the logs path (`<RVC path>/logs`) in the variable `model_root`, in `app.py`
@@ -27,13 +27,22 @@ Get the model:
 
 #### PythonTwitchBotFramework
 
-Install:
+##### Install
 
 - Run `python3 -m pip install PythonTwitchBotFramework`
 
-Bot credentials:
+##### Creating the Twitch bot
 
-TODO
+- Create a Twitch account to be used as a bot
+- [Create a new app](https://dev.twitch.tv/console/apps/create). Set a name, `Loyalty Tool` as category, and (if you don't want to use it) `http://localhost` as OAuth redirect
+
+##### Config setup
+
+The first time you run the script it will raise a token exception, and it will generate some config files.
+
+You'll have to edit `config.json`:
+
+- Remove all commands in `command_whitelist`; leave only `"command_whitelist": []`
 
 #### Website audio player
 

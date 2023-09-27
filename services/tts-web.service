@@ -1,0 +1,10 @@
+[Unit]
+Description=TTS website starter
+
+[Service]
+Type=simple
+WorkingDirectory=/home/rogermiranda1000/TwitchTTSBot/rvc-tts-webui
+ExecStart=/home/rogermiranda1000/anaconda3/envs/tts/bin/python3 app.py
+
+[Install]
+WantedBy=multi-user.target
