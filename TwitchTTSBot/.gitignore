@@ -1,4 +1,7 @@
 configs/
+mods/
+commands/
+*.sqlite
 
 key.pem
 server.pem
