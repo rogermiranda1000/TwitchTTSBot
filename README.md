@@ -46,6 +46,7 @@ You'll have to edit `config.json`:
 
 - Remove all commands in `command_whitelist`; leave only `"command_whitelist": []`
 - Set the desired channel in `channels`
+- Set the desired secret key in a new entry: `"secret": "admin"`. This will be needed for the audio player, as you'll have to enter to `localhost:7890?token=<secret>` (`admin` by default)
 - Set the app id in `client_id`
 - Set the OAuth token in `"oauth": "oauth:<token>"`
 - Set the PubSub token in a new entry: `"pubsub": "<token>"`
@@ -56,6 +57,6 @@ You'll have to edit `config.json`:
 
 - Run `python3 -m pip install Flask-SocketIO==4.3.1 python-engineio==3.13.2 python-socketio==4.6.0`
 
-##### Generating the SSL credentials [work in progress]
+##### Generating the SSL credentials
 
 Inside the `TwitchTTSBot/` folder, run `openssl req -new -x509 -keyout key.pem -out server.pem -days 365 -nodes`.
