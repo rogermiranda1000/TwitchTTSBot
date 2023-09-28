@@ -11,11 +11,18 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
     <script>
-      const socket = io("http://{{ip}}:{{port}}");
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
 
-      function sendMsg() {
-        socket.emit("message", "HELLO WORLD");
-      }
+        const socket = io("http://{{ip}}:{{port}}");
+
+        function sendMsg() {
+            socket.emit("message", {'msg': "HELLO WORLD", 'token': urlParams.getAll('token')[0]});
+        }
+
+        socket.on("message", function(data) {
+            alert(data);
+        });
     </script>
   </body>
 </html>

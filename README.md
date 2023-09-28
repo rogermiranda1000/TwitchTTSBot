@@ -56,6 +56,6 @@ You'll have to edit `config.json`:
 
 - Run `python3 -m pip install Flask-SocketIO==4.3.1 python-engineio==3.13.2 python-socketio==4.6.0`
 
-##### Generating the SSL credentials
+##### Generating the SSL credentials [work in progress]
 
 Inside the `TwitchTTSBot/` folder, run `openssl req -new -x509 -keyout key.pem -out server.pem -days 365 -nodes`.

@@ -15,11 +15,15 @@ def start(secret_token: str = 'admin', port: int = 7890):
     ## event we wish to listen out for
     @sio.on('message')
     async def print_message(sid, message):
-        ## When we receive a new event of type
-        ## 'message' through a socket.io connection
-        ## we print the socket ID and the message
-        print("Socket ID: " , sid)
-        print(message)
+        #print("Socket ID: " , sid)
+        #print(message)
+
+        if not isinstance(message, dict) or not 'token' in message or message['token'] != secret_token:
+            return # invalid
+
+        ## await a successful emit of our reversed message
+        ## back to the client
+        await sio.emit('message', message['msg'])
     
     ## we can define aiohttp endpoints just as we normally
     ## would with no change
@@ -33,7 +37,7 @@ def start(secret_token: str = 'admin', port: int = 7890):
     # We bind our aiohttp endpoint to our app router
     app.router.add_get('/', index)
 
-    # https
+    # https TODO
     ssl_context = None
     #ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     #ssl_context.load_cert_chain('server.pem', 'key.pem')
