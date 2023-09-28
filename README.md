@@ -52,7 +52,9 @@ You'll have to edit `config.json`:
 
 #### Website audio player
 
-TODO
+##### Install
+
+- Run `python3 -m pip install Flask-SocketIO==4.3.1 python-engineio==3.13.2 python-socketio==4.6.0`
 
 ##### Generating the SSL credentials
 

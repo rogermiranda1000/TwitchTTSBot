@@ -1,45 +1,45 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib import parse
-from typing import Any
+from aiohttp import web
+import socketio
 import ssl
 
-class http_server:
-    # @param arg: Argument for the BaseHTTPRequestHandler
-    # @param port: website port
-    # @param only_local: Listen only for localhost (True), or listen all interfaces (False)
-    def __init__(self, arg: Any, port: int = 7890, only_local: bool = False):
-        def handler(*args):
-            AudioServerWebsite(arg, *args)
-        server = HTTPServer(('localhost' if only_local else '', port), handler)
-        # HTTPS
-        server.socket = ssl.wrap_socket(server.socket,
-                                        server_side=True,
-                                        certfile="server.pem",
-                                        keyfile="key.pem",
-                                        ssl_version=ssl.PROTOCOL_TLS)
-        server.serve_forever()
-
-class AudioServerWebsite(BaseHTTPRequestHandler):
-    def __init__(self, secret_token: str = 'admin', *args):
-        self._secret_token = secret_token
-        BaseHTTPRequestHandler.__init__(self, *args)
-
-    def do_GET(self):
-        parsed_path = parse.urlsplit(self.path)
-        get_params = dict(parse.parse_qsl(parsed_path.query))
-        #print(get_params)
-
-        if not 'token' in get_params or get_params['token'] != self._secret_token:
-            self.send_response(401)
-            self.end_headers()
-            return
+def start(secret_token: str = 'admin', port: int = 7890):
+    # creates a new Async Socket IO Server
+    sio = socketio.AsyncServer()
+    # Creates a new Aiohttp Web Application
+    app = web.Application()
+    # Binds our Socket.IO server to our Web App instance
+    sio.attach(app)
+    
+    ## If we wanted to create a new websocket endpoint,
+    ## use this decorator, passing in the name of the
+    ## event we wish to listen out for
+    @sio.on('message')
+    async def print_message(sid, message):
+        ## When we receive a new event of type
+        ## 'message' through a socket.io connection
+        ## we print the socket ID and the message
+        print("Socket ID: " , sid)
+        print(message)
+    
+    ## we can define aiohttp endpoints just as we normally
+    ## would with no change
+    async def index(request):
+        if not 'token' in request.rel_url.query or request.rel_url.query['token'] != secret_token:
+            raise web.HTTPUnauthorized()
             
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b'Hello, world!')
+        with open('index.html') as f:
+            return web.Response(text=f.read().replace('{{ip}}', 'mc.rogermiranda1000.com').replace('{{port}}', str(port)), content_type='text/html')
 
-def start(secret_token: str = 'admin', port: int = 7890, only_local: bool = False):
-    http_server(secret_token, port, only_local)
+    # We bind our aiohttp endpoint to our app router
+    app.router.add_get('/', index)
+
+    # https
+    ssl_context = None
+    #ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    #ssl_context.load_cert_chain('server.pem', 'key.pem')
+
+    # We kick off our server
+    web.run_app(app, port=port, ssl_context=ssl_context)
 
 if __name__ == '__main__':
     start()
