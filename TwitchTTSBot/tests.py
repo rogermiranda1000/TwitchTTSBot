@@ -29,48 +29,65 @@ class BotTests(unittest.TestCase):
     def test_redeem(self):
         print("[v] Launching custom event")
         data = PubSubData({
-    "type": "reward-redeemed",
-    "data": {
-        "timestamp": "2019-11-12T01:29:34.98329743Z",
-        "redemption": {
-            "id": "9203c6f0-51b6-4d1d-a9ae-8eafdb0d6d47",
-            "user": {
-                "id": "30515034",
-                "login": "davethecust",
-                "display_name": "davethecust"
-            },
-            "channel_id": "30515034",
-            "redeemed_at": "2019-12-11T18:52:53.128421623Z",
-            "reward": {
-                "id": "6ef17bb2-e5ae-432e-8b3f-5ac4dd774668",
-                "channel_id": "30515034",
-                "title": PubSubSubscriberMod._GetRedeemName(),
-                "prompt": "TTS read message\n",
-                "cost": 10,
-                "is_user_input_required": True,
-                "is_sub_only": False,
-                "image": {
-                    "url_1x": "https://static-cdn.jtvnw.net/custom-reward-images/30515034/6ef17bb2-e5ae-432e-8b3f-5ac4dd774668/7bcd9ca8-da17-42c9-800a-2f08832e5d4b/custom-1.png",
-                    "url_2x": "https://static-cdn.jtvnw.net/custom-reward-images/30515034/6ef17bb2-e5ae-432e-8b3f-5ac4dd774668/7bcd9ca8-da17-42c9-800a-2f08832e5d4b/custom-2.png",
-                    "url_4x": "https://static-cdn.jtvnw.net/custom-reward-images/30515034/6ef17bb2-e5ae-432e-8b3f-5ac4dd774668/7bcd9ca8-da17-42c9-800a-2f08832e5d4b/custom-4.png"
-                },
-                "default_image": {
-                    "url_1x": "https://static-cdn.jtvnw.net/custom-reward-images/default-1.png",
-                    "url_2x": "https://static-cdn.jtvnw.net/custom-reward-images/default-2.png",
-                    "url_4x": "https://static-cdn.jtvnw.net/custom-reward-images/default-4.png"
-                },
-                "background_color": "#00C7AC",
-                "is_enabled": True,
-                "is_paused": False,
-                "is_in_stock": True,
-                "max_per_stream": { "is_enabled": False, "max_per_stream": 0 },
-                "should_redemptions_skip_request_queue": True
-            },
-            "user_input": "This is a test.",
-            "status": "FULFILLED"
-        }
-    }
-})
+            "type": "MESSAGE",
+            "data": {
+                "topic":"channel-points-channel-v1.35927458",
+                "message":"""{
+                    \"type\": \"reward-redeemed\",
+                    \"data\": {
+                        \"timestamp\": \"2023-09-28T22:14:08.289959728Z\",
+                        \"redemption\": {
+                            \"id\": \"66460adc-9eba-4772-9aa1-601c790d74fc\",
+                            \"user\": {
+                                \"id\": \"35927458\",
+                                \"login\": \"userman2\",
+                                \"display_name\": \"userman2\"
+                            },
+                            \"channel_id\": \"35927458\",
+                            \"redeemed_at\": \"2023-09-28T22:14:08.289959728Z\",
+                            \"reward\": {
+                                \"id\": \"8a7da6dc-cb5c-42da-b522-8601e5126677\",
+                                \"channel_id\": \"35927458\",
+                                \"title\": \"""" + PubSubSubscriberMod._GetRedeemName() + """\",
+                                \"prompt\": \"test for pubsub custom reward with texts\",
+                                \"cost\": 1,
+                                \"is_user_input_required\": true,
+                                \"is_sub_only\": false,
+                                \"image\": null,
+                                \"default_image\": {
+                                    \"url_1x\": \"https://static-cdn.jtvnw.net/custom-reward-images/default-1.png\",
+                                    \"url_2x\": \"https://static-cdn.jtvnw.net/custom-reward-images/default-2.png\",
+                                    \"url_4x\": \"https://static-cdn.jtvnw.net/custom-reward-images/default-4.png\"
+                                },
+                                \"background_color\": \"#FAB3FF\",
+                                \"is_enabled\": true,
+                                \"is_paused\": false,
+                                \"is_in_stock\": true,
+                                \"max_per_stream\": {
+                                    \"is_enabled\": false,
+                                    \"max_per_stream\": 0
+                                },
+                                \"should_redemptions_skip_request_queue\": true,
+                                \"template_id\": null,
+                                \"updated_for_indicator_at\": \"2021-02-05T23:33:10.862461839Z\",
+                                \"max_per_user_per_stream\": {
+                                    \"is_enabled\": false,
+                                    \"max_per_user_per_stream\": 0
+                                },
+                                \"global_cooldown\": {
+                                    \"is_enabled\": false,
+                                    \"global_cooldown_seconds\": 0
+                                },
+                                \"redemptions_redeemed_current_stream\": null,
+                                \"cooldown_expires_at\": null
+                            },
+                            \"user_input\": \"This is a test.\",
+                            \"status\":\"FULFILLED\"
+                        }
+                    }
+                }"""
+            }
+        })
         forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import shutil
-from synthesizer import TTSSynthesizer
+from .synthesizer import TTSSynthesizer
 
 # It will copy an audio file each time `synthesize` is called
 class FakeSynthesizer(TTSSynthesizer):

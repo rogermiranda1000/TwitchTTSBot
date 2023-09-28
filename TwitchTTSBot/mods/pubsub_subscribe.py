@@ -38,4 +38,4 @@ class PubSubSubscriberMod(Mod):
         print(f'[v] {data.reward_prompt} ; {data.user_input}')
 
         if data.reward_title == self._redeem_name:
-            TwitchTTSBot.instance()._on_channel_points_redeemed(data.user_login_name, data.user_input)
+            await TwitchTTSBot.instance()._on_channel_points_redeemed(data.user_login_name, data.user_input)

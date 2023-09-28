@@ -82,8 +82,9 @@ class WebServer(AudioServer):
     async def interrupt_stream(self):
         if self.playing_audio:
             # one audio is playing; stop it
+            self._currently_playing = None
             await self._sio.emit('interrupt', '')
-            self.on_finish()
+            await self.on_finish()
     
     # @pre No audio should be playing
     # @pre The file should be in the website's "resources" path
@@ -92,6 +93,7 @@ class WebServer(AudioServer):
         #    return
 
         target_file = Path(path).name
+        self._currently_playing = target_file
         print(f"[v] Serving {target_file}...")
         await self._sio.emit('audio', target_file)
     
@@ -99,12 +101,14 @@ class WebServer(AudioServer):
         print(f"[v] Finished streaming audio '{file}'")
 
         if file == self._currently_playing:
+            self._currently_playing = None
             await self.on_finish()
     
     async def _stream_timedout(self, file: str):
         print(f"[v] Timeout on audio '{file}'")
 
         if file == self._currently_playing:
+            self._currently_playing = None
             await self.on_timeout()
 
 if __name__ == '__main__':

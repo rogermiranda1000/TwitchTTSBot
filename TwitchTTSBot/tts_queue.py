@@ -15,7 +15,7 @@ class TTSQueue:
         self._serve_to = serve_to
         self._synthesizer = synthesizer
         
-        self._audios_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './audios/')
+        self._audios_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../audio-server/audios/')
 
         self._queue = []
         self._current = None
@@ -36,25 +36,43 @@ class TTSQueue:
             await self.__forward()
 
     async def __forward(self):
-        if len(self._queue) == 0:
+        if len(self._queue) == 0 or self._queue[0].processing:
             return # nothing to play
 
         self._current = self._queue.pop(0)
         await self._serve_to.stream_audio(self._current.path)
 
+    async def __processing_done(self, text: str, path: str):
+        # set path
+        any_update = False
+        for r in self._queue:
+            if r.text == text:
+                r.path = path
+                any_update = True
+        
+        if not any_update:
+            os.remove(path) # user banned while processing; remove and don't play
+        elif not self._serve_to.playing_audio:
+            await self.__forward() # the other thread finished playing, waiting for the processing to be done; play it
+
     async def __ended(self):
-        # ended playing the last audio
-        self._current = None
+        if self._current is not None:
+            # ended playing the last audio
+            os.remove(self._current.path) # remove (already played) file
+            self._current = None
 
         # can we play a next one?
         if len(self._queue) > 0:
             await self.__forward()
 
     async def erase(self, requested_by: str):
+        [os.remove(r.path) for r in self._queue if r.requested_by == requested_by and r.path is not None] # remove the interrupted files
         self._queue = [r for r in self._queue if r.requested_by != requested_by]
+
         if self._current is not None and self._current.requested_by == requested_by:
             # last request made by the user
             await self._serve_to.interrupt_stream()
+            # the file will be removed by the `ended` callback
 
 class TTSQueueEntry:
     def __init__(self, requested_by: str, text: str, path: str = None):
@@ -77,3 +95,7 @@ class TTSQueueEntry:
     @path.setter
     def path(self, path: str):
         self._path = path
+
+    @property
+    def processing(self) -> bool:
+        return self._path is None
