@@ -2,6 +2,9 @@ from aiohttp import web
 import socketio
 import ssl
 
+import re
+import os
+
 def start(secret_token: str = 'admin', port: int = 7890):
     # creates a new Async Socket IO Server
     sio = socketio.AsyncServer()
@@ -21,9 +24,8 @@ def start(secret_token: str = 'admin', port: int = 7890):
         if not isinstance(message, dict) or not 'token' in message or message['token'] != secret_token:
             return # invalid
 
-        ## await a successful emit of our reversed message
-        ## back to the client
-        await sio.emit('message', message['msg'])
+        ## await a successful emit of the audio back to the client
+        await sio.emit('audio', 'out.wav')
     
     ## we can define aiohttp endpoints just as we normally
     ## would with no change
@@ -33,9 +35,26 @@ def start(secret_token: str = 'admin', port: int = 7890):
             
         with open('index.html') as f:
             return web.Response(text=f.read(), content_type='text/html')
+    
+    async def resource(request):
+        if not 'token' in request.rel_url.query or request.rel_url.query['token'] != secret_token:
+            raise web.HTTPUnauthorized()
+
+        path = re.sub(r'[^a-zA-Z0-9\.]', '', request.match_info['audio'])
+        full_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './audios/' + path)
+        #print(full_path)
+        
+        try:
+            with open(full_path, 'rb') as f:
+                return web.Response(body=f.read(), content_type='audio/wav')
+        except Exception as e:
+            print(str(e))
+            raise web.HTTPNotFound()
 
     # We bind our aiohttp endpoint to our app router
     app.router.add_get('/', index)
+    # Audios
+    app.router.add_get('/audios/{audio}', resource)
 
     # https TODO
     ssl_context = None

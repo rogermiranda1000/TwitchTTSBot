@@ -1,6 +1,3 @@
 configs/
 commands/
 *.sqlite
-
-key.pem
-server.pem

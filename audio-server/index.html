@@ -8,20 +8,31 @@
   </head>
   <body>
     <button onClick="sendMsg()">Hit Me</button>
+    <audio id="ttsAudio">
+      <source src type="audio/wav" id="ttsAudioSource">
+    </audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
     <script>
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
 
+        const fullDomain = window.location.protocol + '//' + window.location.host;
         let socket = io();
 
         function sendMsg() {
-            socket.emit("message", {'msg': "HELLO WORLD", 'token': urlParams.getAll('token')[0]});
+            socket.emit("message", {'msg': "done", 'token': urlParams.getAll('token')[0]});
         }
 
-        socket.on("message", function(data) {
-            alert(data);
+        let audio = document.getElementById("ttsAudio"); 
+        let audioSource = document.getElementById("ttsAudioSource"); 
+        socket.on("audio", async function(data) {
+            audio.pause();
+
+            audioSource.src = fullDomain + '/audios/' + data + window.location.search;
+
+            audio.load();
+            audio.play();
         });
     </script>
   </body>
