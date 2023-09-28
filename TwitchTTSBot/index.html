@@ -14,7 +14,7 @@
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
 
-        const socket = io("http://{{ip}}:{{port}}");
+        let socket = io();
 
         function sendMsg() {
             socket.emit("message", {'msg': "HELLO WORLD", 'token': urlParams.getAll('token')[0]});

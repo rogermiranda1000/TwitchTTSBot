@@ -32,7 +32,7 @@ def start(secret_token: str = 'admin', port: int = 7890):
             raise web.HTTPUnauthorized()
             
         with open('index.html') as f:
-            return web.Response(text=f.read().replace('{{ip}}', 'mc.rogermiranda1000.com').replace('{{port}}', str(port)), content_type='text/html')
+            return web.Response(text=f.read(), content_type='text/html')
 
     # We bind our aiohttp endpoint to our app router
     app.router.add_get('/', index)
