@@ -22,7 +22,8 @@ class PubSubSubscriberMod(Mod):
         print(raw.raw_data)
     
     async def on_pubsub_custom_channel_point_reward(self, _: PubSubData, data: PubSubPointRedemption):
-        print(f'{data.user_display_name} redeemed {data.reward_title}')
+        print(f'{data.user_display_name} ({data.user_login_name}) redeemed {data.reward_title}')
         print(f'[v] {data.reward_prompt} ; {data.user_input}')
-        #if data.reward_title == "Channel point redeem":
-        #    pass
+
+        if data.reward_title == "AIden TTS":
+            pass

@@ -46,6 +46,7 @@ You'll have to edit `config.json`:
 
 - Remove all commands in `command_whitelist`; leave only `"command_whitelist": []`
 - Set the desired channel in `channels`
+- Set the bot name in `nick` and `owner`
 - Set the desired secret key in a new entry: `"secret": "admin"`. This will be needed for the audio player, as you'll have to enter to `localhost:7890?token=<secret>` (`admin` by default)
 - Set the app id in `client_id`
 - Set the OAuth token in `"oauth": "oauth:<token>"`
