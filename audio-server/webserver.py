@@ -14,7 +14,7 @@ from threading import Thread,Lock
 import asyncio
 from time import sleep
 
-class WebServer(Thread):
+class WebServer:
     def __init__(self, secret_token: str = 'admin', port: int = 7890):
         self._base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './audios/')
         self._secret_token = secret_token
@@ -23,10 +23,8 @@ class WebServer(Thread):
         self._queue_lock = Lock()
         self._currently_playing = None
         self._play_queue = []
-        
-        super().__init__()
 
-    def run(self) -> WebServer:
+    async def start(self) -> WebServer:
         # creates a new Async Socket IO Server
         self._sio = socketio.AsyncServer(async_mode='aiohttp', logger=True, engineio_logger=True, cors_allowed_origins='*')
         # Creates a new Aiohttp Web Application
@@ -84,7 +82,10 @@ class WebServer(Thread):
         ssl_context.load_cert_chain('server.pem', 'key.pem')
 
         # We kick off our server
-        web.run_app(self._app, port=self._port, ssl_context=ssl_context, handle_signals=False)
+        self._runner = web.AppRunner(self._app)
+        await self._runner.setup()
+        self._site = web.TCPSite(self._runner, port=self._port, ssl_context=ssl_context)    
+        await self._site.start()
     
     async def interrupt_stream(self):
         with self._queue_lock: # don't play between interrupting!
@@ -147,11 +148,13 @@ class WebServer(Thread):
 
 if __name__ == '__main__':
     website = WebServer()
-    website.start()
-    sleep(8)
-
-    print("[v] Playing sound")
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(website.stream_audio('./audios/test.wav'))
-    
-    #website.stop()
+    loop.run_until_complete(website.start())
+
+    async def play_sound():
+        await asyncio.sleep(8)
+        print("[v] Playing sound")
+        await website.stream_audio('./audios/test.wav')
+
+    loop.run_until_complete(play_sound())
+    loop.run_forever()
