@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 import sys
 sys.path.append("../audio-server")
 from audioserver import AudioServer
@@ -12,6 +14,15 @@ from twitchbot import BaseBot,Message
 import re,sys
 
 class TwitchTTSBot(BaseBot):
+    _instance = None
+
+    @staticmethod
+    def instance(web: AudioServer = None) -> TwitchTTSBot:
+        if TwitchTTSBot._instance is None:
+            TwitchTTSBot._instance = TwitchTTSBot(web)
+        return TwitchTTSBot._instance
+
+
     def __init__(self, web: AudioServer):
         super().__init__()
         self._web = web
@@ -43,15 +54,20 @@ class TwitchTTSBot(BaseBot):
         if timeout_search:
             await self._banned_user(timeout_search.group(3), timeout_search.group(2), sys.maxsize if timeout_search.group(1) is None else int(timeout_search.group(1)))
 
-    async def on_channel_points_redemption(self, msg: Message, reward: str):
-        print(f"[v] Legacy point redeem call: {msg}")
+    async def _on_channel_points_redeemed(self, user: str, msg: str):
+        print(f"[v] The user {user} request the following TTS message: '{msg}'")
+        await self._queue.enqueue(user, msg)
     
     async def _banned_user(self, user: str, mod: str, time: int):
         print(f"[v] The user {user} was banned by {mod} ({time})")
         await self._queue.erase(user)
 
 def main():
-    TwitchTTSBot(AudioServer()).run()
+    import sys
+    sys.path.append("../audio-server")
+    from webserver import WebServer
+
+    TwitchTTSBot.instance(WebServer()).run()
 
 if __name__ == '__main__':
     main()

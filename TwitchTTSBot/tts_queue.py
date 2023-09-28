@@ -26,6 +26,7 @@ class TTSQueue:
     async def enqueue(self, requested_by: str, text: str):
         target_file = str(uuid.uuid4().hex) + '.wav'
         target_path = os.path.join(self._audios_path, target_file)
+        print(f"[v] Synthesizing '{text}' into {target_file}")
 
         # infere TTS & append to list
         self._synthesizer.synthesize(text, target_path)
