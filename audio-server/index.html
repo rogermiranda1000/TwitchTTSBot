@@ -7,7 +7,6 @@
     <title>Document</title>
   </head>
   <body>
-    <button onClick="sendMsg()">Hit Me</button>
     <audio id="ttsAudio">
       <source src type="audio/wav" id="ttsAudioSource">
     </audio>
@@ -20,19 +19,25 @@
         const fullDomain = window.location.protocol + '//' + window.location.host;
         let socket = io();
 
-        function sendMsg() {
-            socket.emit("message", {'msg': "done", 'token': urlParams.getAll('token')[0]});
-        }
-
         let audio = document.getElementById("ttsAudio"); 
-        let audioSource = document.getElementById("ttsAudioSource"); 
+        let audioSource = document.getElementById("ttsAudioSource");
+
+        audio.addEventListener("ended", function(){
+          socket.emit("message", {'msg': "done", 'token': urlParams.getAll('token')[0], 'audio': audioSource.src});
+        });
+
         socket.on("audio", async function(data) {
-            audio.pause();
+          audio.currentTime = 0;
+          audio.pause();
 
-            audioSource.src = fullDomain + '/audios/' + data + window.location.search;
+          audioSource.src = fullDomain + '/audios/' + data + window.location.search;
 
-            audio.load();
-            audio.play();
+          audio.load();
+          audio.play();
+        });
+        
+        socket.on("interrupt", function(data) {
+          audio.pause();
         });
     </script>
   </body>
