@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from audioserver import AudioServer
 from aiohttp import web
 import socketio
