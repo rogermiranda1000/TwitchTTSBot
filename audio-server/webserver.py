@@ -6,12 +6,14 @@ import re
 import os
 import asyncio
 from pathlib import Path
+from pydub import AudioSegment
 
 class WebServer(AudioServer):
     def __init__(self, secret_token: str = 'admin', port: int = 7890):
         super().__init__(secret_token, port)
         self._base_path = os.path.dirname(os.path.abspath(__file__))
         self._audios_path = os.path.join(self._base_path, './audios/')
+        self._currently_playing_timeout_task = None
 
     async def start(self):
         # creates a new Async Socket IO Server
@@ -96,9 +98,21 @@ class WebServer(AudioServer):
         self._currently_playing = target_file
         print(f"[v] Serving {target_file}...")
         await self._sio.emit('audio', target_file)
+
+        audio = AudioSegment.from_wav(path)
+        timeout_wait = max(audio.duration_seconds * 1.5, 5) # wait 5s, or 1.5 times the audio length
+        print(f"[v] Play timeout set to {timeout_wait}s")
+        async def timeout_task():
+            await asyncio.sleep(timeout_wait)
+            await self._stream_timedout(target_file)
+        self._currently_playing_timeout_task = asyncio.create_task(timeout_task())
     
     async def _stream_ended(self, file: str):
         print(f"[v] Finished streaming audio '{file}'")
+
+        # stop the timeout task
+        if self._currently_playing_timeout_task is not None:
+            self._currently_playing_timeout_task.cancel()
 
         if file == self._currently_playing:
             self._currently_playing = None
