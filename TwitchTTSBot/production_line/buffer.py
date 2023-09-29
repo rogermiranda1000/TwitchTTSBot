@@ -6,6 +6,10 @@ import asyncio
 from collections.abc import Callable, Awaitable
 from entries import BufferEntry
 
+# fix "This event loop is already running"
+import nest_asyncio
+nest_asyncio.apply()
+
 class Buffer:
     """
     A class that consumes elements.
@@ -15,19 +19,30 @@ class Buffer:
         self._list = []
         self.connection = connection
         self.forward_petition = lambda: None # connected to nothing
+        
+    @staticmethod
+    def _get_event_loop():
+        try:
+            return asyncio.get_event_loop()
+        except RuntimeError:
+            return asyncio.new_event_loop()
     
-    async def enqueue(self, e: BufferEntry):
+    def enqueue(self, e: BufferEntry, sync: bool = False):
         if self.full:
             raise Exception("Can't enqueue element: list is already full")
 
         self._list.append(e)
-        await self.__forward() # it will fail if it can't forward it
+
+        forward_executer = Buffer._get_event_loop().create_task
+        if sync:
+            forward_executer = Buffer._get_event_loop().run_until_complete
+        forward_executer(self.__forward()) # it will fail if it can't forward it
 
     async def __forward(self):
         if len(self._list) == 0 or self.connection is None or self.connection.full:
             return # nothing to enqueue, or nowhere to forward, or forward is busy
 
-        await self.connection.enqueue(self._list.pop(0))
+        self.connection.enqueue(self._list.pop(0))
 
     async def _forward_request(self):
         """

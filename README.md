@@ -30,6 +30,7 @@ If the install raises the error `Failed building wheel for pyworld`, run `python
 ##### Install
 
 - Run `python3 -m pip install PythonTwitchBotFramework`
+- For the bot dependencies, run `python3 -m pip install nest_asyncio`
 
 ##### Creating the Twitch bot
 
