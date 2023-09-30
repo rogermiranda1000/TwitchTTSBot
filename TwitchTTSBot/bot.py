@@ -8,6 +8,9 @@ sys.path.append("../audio-server")
 from audioserver import AudioServer
 
 from tts_queue import TTSQueue
+import pypeln as pl
+from pypeln.utils import Partial,T
+from typing import List
 from twitchbot import BaseBot,Message
 from synthesizers.synthesizer import TTSSynthesizer
 
@@ -17,16 +20,16 @@ class TwitchTTSBot(BaseBot):
     _instance = None
 
     @staticmethod
-    def instance(web: AudioServer = None, synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
+    def instance(web: AudioServer = None, synthesizer: TTSSynthesizer = None, queue_pre_inference: List[Partial[pl.task.Stage[T]]] = None, queue_post_inference: List[Partial[pl.task.Stage[T]]] = None) -> TwitchTTSBot:
         if TwitchTTSBot._instance is None:
-            TwitchTTSBot._instance = TwitchTTSBot(web, synthesizer)
+            TwitchTTSBot._instance = TwitchTTSBot(web, synthesizer, queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)
         return TwitchTTSBot._instance
 
 
-    def __init__(self, web: AudioServer, synthesizer: TTSSynthesizer):
+    def __init__(self, web: AudioServer, synthesizer: TTSSynthesizer, queue_pre_inference: List[Partial[pl.task.Stage[T]]] = None, queue_post_inference: List[Partial[pl.task.Stage[T]]] = None):
         super().__init__()
         self._web = web
-        self._queue = TTSQueue(self._web, synthesizer)
+        self._queue = TTSQueue(self._web, synthesizer, queue_pre_inference, queue_post_inference)
 
     def run(self):
         loop = self._get_event_loop()
