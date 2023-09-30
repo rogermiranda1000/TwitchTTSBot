@@ -54,6 +54,7 @@ You'll have to edit `config.json`:
 - Set the bot name in `nick` and `owner`
 - Set the desired secret key in a new entry: `"secret": "admin"`. This will be needed for the audio player, as you'll have to enter to `localhost:7890?token=<secret>`
 - Set the desired redeem name in a new entry: `"redeem": "Custom TTS"`
+- Set the `RVC-based TTS` model name in a new entry: `"model": "<model name>"`
 - Set the app id in `client_id`
 - Set the OAuth token in `"oauth": "oauth:<token>"`
 - Set the PubSub token in a new entry: `"pubsub": "<token>"`

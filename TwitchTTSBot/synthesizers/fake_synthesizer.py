@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import asyncio
 import shutil
 from .synthesizer import TTSSynthesizer
 
@@ -9,7 +10,7 @@ class FakeSynthesizer(TTSSynthesizer):
     def __init__(self, copy_from: str):
         self._copy_from = copy_from
 
-    def synthesize(self, text: str, out: str):
+    async def synthesize(self, text: str, out: str):
         shutil.copyfile(self._copy_from, out)
 
     

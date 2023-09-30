@@ -76,7 +76,7 @@ class TTSQueue:
         Infere TTS
         """
         target_path = e.path # the target_path is the path set by the last iterator
-        self._synthesizer.synthesize(e.text, target_path)
+        await self._synthesizer.synthesize(e.text, target_path)
         return e
 
     async def __play(self, e: TTSQueueEntry) -> TTSQueueEntry:

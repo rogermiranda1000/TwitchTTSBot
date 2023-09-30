@@ -6,16 +6,12 @@ from twitchbot import forward_event
 import asyncio
 from time import sleep
 
-import sys
-sys.path.append("../audio-server")
-from webserver import WebServer
-
-from synthesizers.rvc_synthesizer import RVCTTSSynthesizer
+import bot_factory
 
 class BotTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls._bot = TwitchTTSBot.instance(WebServer(), RVCTTSSynthesizer())
+        cls._bot = bot_factory.instantiate()
         cls._bot.run_in_async_task()
 
         async def await_for_bot():

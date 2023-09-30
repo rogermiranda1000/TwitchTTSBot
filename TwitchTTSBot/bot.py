@@ -65,14 +65,9 @@ class TwitchTTSBot(BaseBot):
         print(f"[v] The user {user} was banned by {mod} ({time})")
         await self._queue.erase(user)
 
-def main():
-    import sys
-    sys.path.append("../audio-server")
-    from webserver import WebServer
-    
-    from synthesizers.rvc_synthesizer import RVCTTSSynthesizer
-
-    TwitchTTSBot.instance(WebServer(), RVCTTSSynthesizer()).run()
+def _main(args):
+    import bot_factory
+    bot_factory.instantiate().run()
 
 if __name__ == '__main__':
     main()
