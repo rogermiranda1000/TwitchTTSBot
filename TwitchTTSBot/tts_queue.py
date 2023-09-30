@@ -7,6 +7,7 @@ sys.path.append("../audio-server")
 from audioserver import AudioServer
 
 from synthesizers.synthesizer import TTSSynthesizer
+from pydub import AudioSegment
 
 import os
 from pathlib import Path
@@ -15,7 +16,7 @@ import uuid
 import asyncio
 import pypeln as pl
 from pypeln.utils import A
-from typing import Union
+from typing import Union,Tuple
 import multiprocessing as mp
 
 class TTSQueue:
@@ -51,6 +52,8 @@ class TTSQueue:
                     | pre_inference                                 \
                     | pl.task.map(self.__infere)                    \
                     | post_inference                                \
+                    | pl.task.map(self.__join)                      \
+                    | pl.task.map(self.__clean_segments)            \
                     | pl.task.map(self.__play)                      \
                     | pl.task.map(self.__wait_for_streaming)        \
                     | pl.task.map(self.__clean)                     \
@@ -65,9 +68,7 @@ class TTSQueue:
         # TODO stop thread when closing
 
     async def enqueue(self, requested_by: str, text: str):
-        target_file = str(uuid.uuid4().hex) + '.wav'
-        target_path = os.path.join(self._audios_path, target_file)
-        e = TTSQueueEntry(requested_by, text, target_path)
+        e = TTSQueueEntry(requested_by, GeneratedTTSSegment(text))
         self._processing_input.put(e)
         
         # notify the tts_queue loop
@@ -78,12 +79,46 @@ class TTSQueue:
         """
         Infere TTS
         """
-        print(f"[v] Synthesizing '{e.text}' into {e.file_name}")
+        for index, segment in enumerate(e.segments):
+            if not segment.processing:
+                continue # already processed
 
-        target_path = e.path # the target_path is the path set by the last iterator
-        await self._synthesizer.synthesize(e.text, target_path)
+            if not isinstance(segment, GeneratedTTSSegment):
+                raise ValueError("Unrecognised class " + segment.__class__.__name__ + " and not ready to process.")
 
-        print(f"[v] '{e.text}' synthetized.")
+            target_file = str(uuid.uuid4().hex) + '.wav'
+            target_path = os.path.join(self._audios_path, target_file)
+            print(f"[v] Synthesizing segment {index+1}/{len(e.segments)} into {target_file}...")
+
+            await self._synthesizer.synthesize(segment.text, target_path)
+            segment.path = target_path
+
+            print(f"[v] '{segment.text}' synthetized.")
+
+        return e
+
+    async def __join(self, e: TTSQueueEntry) -> TTSQueueEntry:
+        target_file = str(uuid.uuid4().hex) + '.wav'
+        target_path = os.path.join(self._audios_path, target_file)
+
+        e.path = target_path
+        print(f"[v] Joining sub-segments into {e.file_name}...")
+
+        if len(e.segments) == 0:
+            return e # invalid
+
+        result = AudioSegment.from_file(e.segments[0].path, format="wav")
+        for segment in e.segments[1:]:
+            result += AudioSegment.from_file(segment.path, format="wav")
+        
+        result.export(target_path, format="wav")
+
+        return e
+
+    async def __clean_segments(self, e: TTSQueueEntry) -> TTSQueueEntry:
+        for segment in e.segments:
+            os.remove(segment.path)
+
         return e
 
     async def __play(self, e: TTSQueueEntry) -> TTSQueueEntry:
@@ -92,7 +127,7 @@ class TTSQueue:
         """
         await self._play_semaphore.acquire() # only one in between `__play` and `__clean`
 
-        e.invalidated = e.requested_by in self._bans
+        e.invalidated = e.requested_by in self._bans or e.invalidated or e.processing # if user is banned, or it is invalidated, or it wasn't made at all, then skip
         if not e.invalidated:
             await self._serve_to.stream_audio(e.path)
             self._current = e
@@ -126,23 +161,15 @@ class TTSQueue:
             self._website_notifier.notify()
 
 class TTSQueueEntry:
-    def __init__(self, requested_by: str, text: str, path: str = None):
+    def __init__(self, requested_by: str, *segments: Tuple[TTSSegment, ...], path: str = None):
         self._requested_by = requested_by
-        self._text = text
+        self._segments = list(segments)
         self.path = path
         self.invalidated = False
     
     @property
     def requested_by(self) -> str:
         return self._requested_by
-    
-    @property
-    def text(self) -> str:
-        return self._text
-
-    @text.setter
-    def text(self, text: str):
-        self._text = text
     
     @property
     def path(self) -> str:
@@ -156,6 +183,10 @@ class TTSQueueEntry:
     def invalidated(self) -> bool:
         return self._invalidated
 
+    @property
+    def segments(self) -> List[TTSSegment]:
+        return self._segments
+
     @invalidated.setter
     def invalidated(self, invalidated: bool):
         self._invalidated = invalidated
@@ -167,3 +198,36 @@ class TTSQueueEntry:
     @property
     def processing(self) -> bool:
         return self._path is None
+
+class TTSSegment:
+    def __init__(self, path: str = None):
+        self.path = path
+    
+    @property
+    def path(self) -> str:
+        return self._path
+
+    @path.setter
+    def path(self, path: str):
+        self._path = path
+    
+    @property
+    def file_name(self) -> str:
+        return None if self._path is None else Path(self._path).name
+
+    @property
+    def processing(self) -> bool:
+        return self._path is None
+
+class GeneratedTTSSegment(TTSSegment):
+    def __init__(self, text: str, path: str = None):
+        super().__init__(path)
+        self._text = text
+    
+    @property
+    def text(self) -> str:
+        return self._text
+
+    @text.setter
+    def text(self, text: str):
+        self._text = text

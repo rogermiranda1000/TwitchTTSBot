@@ -35,7 +35,7 @@ def instantiate() -> TwitchTTSBot:
     character_limit = _get_character_limit()
     if character_limit is not None:
         async def truncate_input(e: TTSQueueEntry):
-            e.text = e.text[:character_limit]
+            e.segments[0].text = e.segments[0].text[:character_limit]
             return e
 
         queue_pre_inference = pl.task.map(truncate_input)
