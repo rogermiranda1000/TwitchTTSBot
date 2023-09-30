@@ -28,8 +28,8 @@ def _get_character_limit() -> int:
     return None if 'input_limit' not in _get_config_json() else _get_config_json()['input_limit']
 
 def instantiate() -> TwitchTTSBot:
-    queue_pre_inference = pl.task.filter(lambda e: True)
-    queue_post_inference = pl.task.filter(lambda e: True)
+    queue_pre_inference = []
+    queue_post_inference = []
 
     # character limit
     character_limit = _get_character_limit()
@@ -38,7 +38,7 @@ def instantiate() -> TwitchTTSBot:
             e.segments[0].text = e.segments[0].text[:character_limit]
             return e
 
-        queue_pre_inference = pl.task.map(truncate_input)
+        queue_pre_inference.append(pl.task.map(truncate_input))
 
     # return the instance
     return TwitchTTSBot.instance(WebServer(), RVCTTSSynthesizer(model=_get_model_name()), queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)

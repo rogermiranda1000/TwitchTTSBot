@@ -9,8 +9,8 @@ from audioserver import AudioServer
 
 from tts_queue import TTSQueue
 import pypeln as pl
-from pypeln.utils import A
-from typing import Union
+from pypeln.utils import Partial,T
+from typing import List
 from twitchbot import BaseBot,Message
 from synthesizers.synthesizer import TTSSynthesizer
 
@@ -20,13 +20,13 @@ class TwitchTTSBot(BaseBot):
     _instance = None
 
     @staticmethod
-    def instance(web: AudioServer = None, synthesizer: TTSSynthesizer = None, queue_pre_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]] = pl.task.filter(lambda e: True), queue_post_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]] = pl.task.filter(lambda e: True)) -> TwitchTTSBot:
+    def instance(web: AudioServer = None, synthesizer: TTSSynthesizer = None, queue_pre_inference: List[Partial[pl.task.Stage[T]]] = None, queue_post_inference: List[Partial[pl.task.Stage[T]]] = None) -> TwitchTTSBot:
         if TwitchTTSBot._instance is None:
             TwitchTTSBot._instance = TwitchTTSBot(web, synthesizer, queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)
         return TwitchTTSBot._instance
 
 
-    def __init__(self, web: AudioServer, synthesizer: TTSSynthesizer, queue_pre_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]] = pl.task.filter(lambda e: True), queue_post_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]] = pl.task.filter(lambda e: True)):
+    def __init__(self, web: AudioServer, synthesizer: TTSSynthesizer, queue_pre_inference: List[Partial[pl.task.Stage[T]]] = None, queue_post_inference: List[Partial[pl.task.Stage[T]]] = None):
         super().__init__()
         self._web = web
         self._queue = TTSQueue(self._web, synthesizer, queue_pre_inference, queue_post_inference)

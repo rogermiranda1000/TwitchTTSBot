@@ -15,16 +15,21 @@ import uuid
 
 import asyncio
 import pypeln as pl
-from pypeln.utils import A
-from typing import Union,Tuple
+from pypeln.utils import Partial,T
+from typing import Tuple,List
 import multiprocessing as mp
 
 class TTSQueue:
-    def __init__(self, serve_to: AudioServer, synthesizer: TTSSynthesizer, pre_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]] = pl.task.filter(lambda e: True), post_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]] = pl.task.filter(lambda e: True)):
+    def __init__(self, serve_to: AudioServer, synthesizer: TTSSynthesizer, pre_inference: List[Partial[pl.task.Stage[T]]] = None, post_inference: List[Partial[pl.task.Stage[T]]] = None):
         self._serve_to = serve_to
         self._synthesizer = synthesizer
         
         self._audios_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../audio-server/audios/')
+
+        if pre_inference is None:
+            pre_inference = []
+        if post_inference is None:
+            post_inference = []
 
         self._current = None
         self._queued_element_notifier = asyncio.Condition()
@@ -39,7 +44,7 @@ class TTSQueue:
         self._serve_to.on_timeout = self.__ended_web_streaming
 
     # @author https://github.com/cgarciae/pypeln/issues/99
-    def __init_queue(self, pre_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]], post_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]]):
+    def __init_queue(self, pre_inference: List[Partial[pl.task.Stage[T]]], post_inference: List[Partial[pl.task.Stage[T]]]):
         async def tts_queue():
             while True:
                 if self._processing_input.empty():
@@ -48,11 +53,13 @@ class TTSQueue:
 
                 yield self._processing_input.get(block=True, timeout=2)
 
-        queue = pl.task.from_iterable(tts_queue())                  \
-                    | pre_inference                                 \
-                    | pl.task.map(self.__infere)                    \
-                    | post_inference                                \
-                    | pl.task.map(self.__join)                      \
+        queue = pl.task.from_iterable(tts_queue())
+        for pre in pre_inference:
+            queue = queue | pre
+        queue = queue | pl.task.map(self.__infere)
+        for post in post_inference:
+            queue = queue | post
+        queue = queue | pl.task.map(self.__join)                    \
                     | pl.task.map(self.__clean_segments)            \
                     | pl.task.map(self.__play)                      \
                     | pl.task.map(self.__wait_for_streaming)        \
