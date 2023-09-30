@@ -40,13 +40,16 @@ def _generate_splits(text: str, find: List[str]) -> List[str]:
         prev = r
         r = []
 
+        regex_pattern = re.compile(r'(?: |^)' + re.escape(f) + r'(?: |$)') # find pattern (sanitized), followed by spaces or begin/end
         for segment in prev:
-            regex_pattern = re.compile(r'\b' + re.escape(f) + r'\b') # find pattern (sanitized), followed by spaces or begin/end
             split = re.split(regex_pattern, segment)
 
-            r.append(split[0])
+            more_split = split[0].strip()
+            if len(more_split) > 0:
+                r.append(more_split)
             for more_split in split[1:]: # skip the first (as we've already added it)
                 r.append(f) # as we're on the 2nd index (or higher), it did found a match in between
+                more_split = more_split.strip()
                 if len(more_split) > 0: # if it's at the end of the string it will produce an empty string
                     r.append(more_split)
 
