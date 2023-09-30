@@ -14,7 +14,6 @@ import uuid
 import asyncio
 import pypeln as pl
 import multiprocessing as mp
-from iterators import TimeoutIterator # start queue
 
 class TTSQueue:
     def __init__(self, serve_to: AudioServer, synthesizer: TTSSynthesizer):

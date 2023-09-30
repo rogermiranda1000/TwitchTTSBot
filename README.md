@@ -30,14 +30,18 @@ If the install raises the error `Failed building wheel for pyworld`, run `python
 ##### Install
 
 - Run `python3 -m pip install PythonTwitchBotFramework`
-- For the bot dependencies, run `python3 -m pip install pypeln iterators`
+- For the bot dependencies, run `python3 -m pip install pypeln`
 
 ##### Creating the Twitch bot
 
 - Create a Twitch account to be used as a bot
 - [Create a new app](https://dev.twitch.tv/console/apps/create). Set a name, `Loyalty Tool` as category, and (if you don't want to use it) `http://localhost` as OAuth redirect
-- In order to give permissions to the app in some channel you'll have to enter the login link (while being logged in in the bot account), and allow it. To generate the login link download `https://github.com/sharkbound/PythonTwitchBotFramework/blob/master/util/token_utils.py` and run `print(generate_irc_oauth('<app id>', 'http://localhost'))`. Once you allow it you'll be redirected to `localhost`; you'll have to copy the `access_token` GET param in the URL (that's the OAuth token).
-- Logged in in the desired channel, allow the following link: `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=<app id>&redirect_uri=http://localhost&scope=channel%3Aread%3Aredemptions`. Once you allow it you'll be redirected to `localhost`; you'll have to copy the `access_token` GET param in the URL (that's the PubSub token).
+- In order to get the OAuth token have to enter the login link (while being logged in in the bot account), and allow it. To generate the login link download `https://github.com/sharkbound/PythonTwitchBotFramework/blob/master/util/token_utils.py` and run `print(generate_irc_oauth('<app id>', 'http://localhost'))`. Once you allow it you'll be redirected to `localhost`; you'll have to copy the `access_token` GET param in the URL (that's the OAuth token).
+
+##### Setting up the stream Twitch account
+
+- While being logged in in the desired channel, allow the following link: `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=<app id>&redirect_uri=http://localhost&scope=channel%3Aread%3Aredemptions`. Once you allow it you'll be redirected to `localhost`; you'll have to copy the `access_token` GET param in the URL (that's the PubSub token).
+- Add a custom text reward redeem
 
 ##### Config setup
 
