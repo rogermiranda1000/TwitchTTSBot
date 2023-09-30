@@ -62,6 +62,13 @@ You'll have to edit `config.json`:
 Optional additional properties:
 
 - You can add a character limit by setting `"input_limit": 450`
+- To add sounds to be replaced you'll have to add an `audios` folder and place there the .wav; then create a new `audios` entry with each audio and :
+```
+"audios": {
+    "[bruh]": { "files": [ "bruh.wav" ] },
+    "[brah]": { "alias": "[bruh]" }
+}
+```
 
 #### Website audio player
 

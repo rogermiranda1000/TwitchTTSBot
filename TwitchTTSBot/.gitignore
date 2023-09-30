@@ -1,3 +1,4 @@
 configs/
 commands/
+audios/
 *.sqlite
