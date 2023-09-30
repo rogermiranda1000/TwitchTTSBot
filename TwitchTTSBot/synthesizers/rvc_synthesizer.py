@@ -14,7 +14,8 @@ class RVCTTSSynthesizer(TTSSynthesizer):
         # calling `infere` directly won't work for permissions issue (needs to be sudo)
         python_full_path = sys.executable
         infere_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../rvc-tts-webui/infere.py')
-        proc = await asyncio.create_subprocess_exec('sudo',python_full_path,infere_path, '--model', self._model, '--text', text, '--out', out)
-        tdout, stderr = await proc.communicate()
+        proc = await asyncio.create_subprocess_exec('sudo',python_full_path,infere_path, '--model', self._model, '--text', text, '--out', out,
+                                                        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        stdout, stderr = await proc.communicate()
 
     

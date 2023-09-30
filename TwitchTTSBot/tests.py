@@ -110,5 +110,26 @@ class BotTests(unittest.TestCase):
         # don't stop until done
         self.sleep(20) # TODO get when bot is done
 
+    def test_interrupt(self):
+        print("[v] Launching custom event (to be interrupted)")
+        data = PubSubData(BotTests._GetRedeem("An extensive text will be longer, thus more time-exhaustive.", user='to_ban'))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        
+        self.sleep(8) # wait to process and start speaking
+        self._loop.run_until_complete(self._bot._banned_user('to_ban', 'rogermiranda1000', 1))
+
+        # don't stop until done
+        self.sleep(10) # TODO get when bot is done
+
+    def test_skip(self):
+        print("[v] Launching custom event (to be skipped)")
+        data = PubSubData(BotTests._GetRedeem(user='to_ban2'))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        
+        self._loop.run_until_complete(self._bot._banned_user('to_ban2', 'rogermiranda1000', 1))
+
+        # don't stop until done
+        self.sleep(15) # TODO get when bot is done
+
 if __name__ == '__main__':
     unittest.main()

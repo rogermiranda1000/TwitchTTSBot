@@ -88,14 +88,16 @@ class TTSQueue:
         """
         await self._play_semaphore.acquire() # only one in between `__play` and `__clean`
 
-        if e.requested_by not in self._bans:
+        e.invalidated = e.requested_by in self._bans
+        if not e.invalidated:
             await self._serve_to.stream_audio(e.path)
             self._current = e
         return e
 
     async def __wait_for_streaming(self, e: TTSQueueEntry):
-        async with self._website_notifier:
-            await self._website_notifier.wait() # wait for the website to call `__ended_web_streaming`
+        if not e.invalidated:
+            async with self._website_notifier:
+                await self._website_notifier.wait() # wait for the website to call `__ended_web_streaming`
         return e
 
     async def __clean(self, e: TTSQueueEntry):
@@ -124,6 +126,7 @@ class TTSQueueEntry:
         self._requested_by = requested_by
         self._text = text
         self.path = path
+        self.invalidated = False
     
     @property
     def requested_by(self) -> str:
@@ -140,6 +143,14 @@ class TTSQueueEntry:
     @path.setter
     def path(self, path: str):
         self._path = path
+    
+    @property
+    def invalidated(self) -> bool:
+        return self._invalidated
+
+    @invalidated.setter
+    def invalidated(self, invalidated: bool):
+        self._invalidated = invalidated
     
     @property
     def file_name(self) -> str:
