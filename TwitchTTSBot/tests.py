@@ -10,10 +10,12 @@ import sys
 sys.path.append("../audio-server")
 from webserver import WebServer
 
+from synthesizers.rvc_synthesizer import RVCTTSSynthesizer
+
 class BotTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls._bot = TwitchTTSBot.instance(WebServer())
+        cls._bot = TwitchTTSBot.instance(WebServer(), RVCTTSSynthesizer())
         cls._bot.run_in_async_task()
 
         async def await_for_bot():

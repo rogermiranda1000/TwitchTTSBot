@@ -8,8 +8,8 @@ sys.path.append("../audio-server")
 from audioserver import AudioServer
 
 from tts_queue import TTSQueue
-from synthesizers.rvc_synthesizer import RVCTTSSynthesizer
 from twitchbot import BaseBot,Message
+from synthesizers.synthesizer import TTSSynthesizer
 
 import re,sys
 
@@ -17,16 +17,16 @@ class TwitchTTSBot(BaseBot):
     _instance = None
 
     @staticmethod
-    def instance(web: AudioServer = None) -> TwitchTTSBot:
+    def instance(web: AudioServer = None, synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
         if TwitchTTSBot._instance is None:
-            TwitchTTSBot._instance = TwitchTTSBot(web)
+            TwitchTTSBot._instance = TwitchTTSBot(web, synthesizer)
         return TwitchTTSBot._instance
 
 
-    def __init__(self, web: AudioServer):
+    def __init__(self, web: AudioServer, synthesizer: TTSSynthesizer):
         super().__init__()
         self._web = web
-        self._queue = TTSQueue(self._web, RVCTTSSynthesizer())
+        self._queue = TTSQueue(self._web, synthesizer)
 
     def run(self):
         loop = self._get_event_loop()
@@ -54,6 +54,9 @@ class TwitchTTSBot(BaseBot):
         if timeout_search:
             await self._banned_user(timeout_search.group(3), timeout_search.group(2), sys.maxsize if timeout_search.group(1) is None else int(timeout_search.group(1)))
 
+    async def on_channel_points_redemption(self, msg: Message, reward: str):
+        print(f"[v] Legacy point redeem call: {msg} ({reward})")
+
     async def _on_channel_points_redeemed(self, user: str, msg: str):
         print(f"[v] The user {user} request the following TTS message: '{msg}'")
         await self._queue.enqueue(user, msg)
@@ -66,8 +69,10 @@ def main():
     import sys
     sys.path.append("../audio-server")
     from webserver import WebServer
+    
+    from synthesizers.rvc_synthesizer import RVCTTSSynthesizer
 
-    TwitchTTSBot.instance(WebServer()).run()
+    TwitchTTSBot.instance(WebServer(), RVCTTSSynthesizer()).run()
 
 if __name__ == '__main__':
     main()

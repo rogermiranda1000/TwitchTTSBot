@@ -27,15 +27,10 @@ class PubSubSubscriberMod(Mod):
 
         return config['redeem']
 
-    # only needed in most cases for verifying a connection
-    async def on_pubsub_received(self, raw: PubSubData):
-        # this should print any errors received from twitch
-        print(raw.raw_data)
+    #async def on_pubsub_received(self, raw: PubSubData):
+    #    print("+>> " + str(raw.raw_data))
     
     async def on_pubsub_custom_channel_point_reward(self, _: PubSubData, data: PubSubPointRedemption):
-        print(str(data.data.message_data))
-        print(f'{data.user_login_name} redeemed {data.reward_title}')
-        print(f'[v] {data.reward_prompt} ; {data.user_input}')
-
+        print(f"[v] Point redeem call: {data.reward_title}, '{data.user_input}' (by {data.user_login_name})")
         if data.reward_title == self._redeem_name:
             await TwitchTTSBot.instance()._on_channel_points_redeemed(data.user_login_name, data.user_input)
