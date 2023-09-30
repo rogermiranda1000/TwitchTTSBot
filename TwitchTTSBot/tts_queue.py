@@ -14,10 +14,12 @@ import uuid
 
 import asyncio
 import pypeln as pl
+from pypeln.utils import A
+from typing import Union
 import multiprocessing as mp
 
 class TTSQueue:
-    def __init__(self, serve_to: AudioServer, synthesizer: TTSSynthesizer):
+    def __init__(self, serve_to: AudioServer, synthesizer: TTSSynthesizer, pre_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]] = pl.task.filter(lambda e: True), post_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]] = pl.task.filter(lambda e: True)):
         self._serve_to = serve_to
         self._synthesizer = synthesizer
         
@@ -27,7 +29,7 @@ class TTSQueue:
         self._queued_element_notifier = asyncio.Condition()
         self._processing_input = mp.Queue()
         self._play_semaphore = asyncio.Lock() # only one in between `__play` and `__clean`
-        self.__init_queue()
+        self.__init_queue(pre_inference, post_inference)
         self._bans = set()
 
         # website callbacks
@@ -36,7 +38,7 @@ class TTSQueue:
         self._serve_to.on_timeout = self.__ended_web_streaming
 
     # @author https://github.com/cgarciae/pypeln/issues/99
-    def __init_queue(self):
+    def __init_queue(self, pre_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]], post_inference: Union[Stage[A], pypeln_utils.Partial[Stage[A]]]):
         async def tts_queue():
             while True:
                 if self._processing_input.empty():
@@ -46,7 +48,9 @@ class TTSQueue:
                 yield self._processing_input.get(block=True, timeout=2)
 
         queue = pl.task.from_iterable(tts_queue())                  \
+                    | pre_inference                                 \
                     | pl.task.map(self.__infere)                    \
+                    | post_inference                                \
                     | pl.task.map(self.__play)                      \
                     | pl.task.map(self.__wait_for_streaming)        \
                     | pl.task.map(self.__clean)                     \
@@ -135,6 +139,10 @@ class TTSQueueEntry:
     @property
     def text(self) -> str:
         return self._text
+
+    @text.setter
+    def text(self, text: str):
+        self._text = text
     
     @property
     def path(self) -> str:

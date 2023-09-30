@@ -59,6 +59,10 @@ You'll have to edit `config.json`:
 - Set the OAuth token in `"oauth": "oauth:<token>"`
 - Set the PubSub token in a new entry: `"pubsub": "<token>"`
 
+Optional additional properties:
+
+- You can add a character limit by setting `"input_limit": 450`
+
 #### Website audio player
 
 ##### Install
