@@ -5,7 +5,7 @@ import sys
 sys.path.append("../audio-server")
 from webserver import WebServer
 
-import os, json, uuid, random
+import os, json, uuid, random, re
 from typing import List
 from bot import TwitchTTSBot
 import shutil
@@ -41,12 +41,14 @@ def _generate_splits(text: str, find: List[str]) -> List[str]:
         r = []
 
         for segment in prev:
-            split = segment.split(f) # TODO consider spaces
+            regex_pattern = re.compile(r'\b' + re.escape(f) + r'\b') # find pattern (sanitized), followed by spaces or begin/end
+            split = re.split(regex_pattern, segment)
 
             r.append(split[0])
             for more_split in split[1:]: # skip the first (as we've already added it)
                 r.append(f) # as we're on the 2nd index (or higher), it did found a match in between
-                r.append(more_split)
+                if len(more_split) > 0: # if it's at the end of the string it will produce an empty string
+                    r.append(more_split)
 
     return r
 
