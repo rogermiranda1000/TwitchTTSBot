@@ -4,9 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Document</title>
+    <title>TTS player</title>
   </head>
   <body>
+    <p id="warning">User interaction is needed in order to play the audio (click on the page)</p>
     <audio id="ttsAudio">
       <source src type="audio/wav" id="ttsAudioSource">
     </audio>
@@ -21,6 +22,10 @@
 
         let audio = document.getElementById("ttsAudio"); 
         let audioSource = document.getElementById("ttsAudioSource");
+        
+        document.onclick = (e) => {
+          document.getElementById("warning").innerHTML = "";
+        };
 
         audio.addEventListener("ended", function(){
           socket.emit("message", {'msg': "done", 'token': urlParams.getAll('token')[0], 'audio': audioSource.src});
