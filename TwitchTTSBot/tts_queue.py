@@ -25,7 +25,9 @@ class TTSQueue:
         self._current = None
         self._queued_element_notifier = asyncio.Condition()
         self._processing_input = mp.Queue()
+        self._play_semaphore = asyncio.Lock() # only one in between `__play` and `__clean`
         self.__init_queue()
+        self._bans = set()
 
         # website callbacks
         self._website_notifier = asyncio.Condition()
@@ -45,7 +47,6 @@ class TTSQueue:
 
         queue = pl.task.from_iterable(tts_queue())                  \
                     | pl.task.map(self.__infere)                    \
-                    | pl.task.filter(self.__is_filtered)            \
                     | pl.task.map(self.__play)                      \
                     | pl.task.map(self.__wait_for_streaming)        \
                     | pl.task.map(self.__clean)                     \
@@ -78,16 +79,15 @@ class TTSQueue:
         self._synthesizer.synthesize(e.text, target_path)
         return e
 
-    async def __is_filtered(self, e: TTSQueueEntry) -> bool:
-        return True # TODO add a filter list
-
     async def __play(self, e: TTSQueueEntry) -> TTSQueueEntry:
         """
         Send the TTS path to the website
         """
-        # TODO what if the filter is already done and `erase` gets called before `__play`?
-        await self._serve_to.stream_audio(e.path)
-        self._current = e
+        await self._play_semaphore.acquire() # only one in between `__play` and `__clean`
+
+        if e.requested_by not in self._bans:
+            await self._serve_to.stream_audio(e.path)
+            self._current = e
         return e
 
     async def __wait_for_streaming(self, e: TTSQueueEntry):
@@ -96,12 +96,15 @@ class TTSQueue:
         return e
 
     async def __clean(self, e: TTSQueueEntry):
-        os.remove(e.path) # remove (already played) file
         self._current = None
+        self._play_semaphore.release()
+
+        os.remove(e.path) # remove (already played) file
+
         return None # finished
 
     async def erase(self, requested_by: str):
-        # TODO add a filter for tasks before playing
+        self._bans.add(requested_by)
 
         if self._current is not None and self._current.requested_by == requested_by:
             # last request made by the user
