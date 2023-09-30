@@ -24,9 +24,9 @@ class BotTests(unittest.TestCase):
     def tearDownClass(cls):
         pass # TODO close bot
 
-    def test_redeem(self):
-        print("[v] Launching custom event")
-        data = PubSubData({
+    @staticmethod
+    def _GetRedeem(prompt: str = "This is a test.", user: str = 'userman2') -> dict:
+        return {
             "type": "MESSAGE",
             "data": {
                 "topic":"channel-points-channel-v1.35927458",
@@ -38,8 +38,8 @@ class BotTests(unittest.TestCase):
                             \"id\": \"66460adc-9eba-4772-9aa1-601c790d74fc\",
                             \"user\": {
                                 \"id\": \"35927458\",
-                                \"login\": \"userman2\",
-                                \"display_name\": \"userman2\"
+                                \"login\": \"""" + user + """\",
+                                \"display_name\": \"""" + user + """\"
                             },
                             \"channel_id\": \"35927458\",
                             \"redeemed_at\": \"2023-09-28T22:14:08.289959728Z\",
@@ -79,18 +79,36 @@ class BotTests(unittest.TestCase):
                                 \"redemptions_redeemed_current_stream\": null,
                                 \"cooldown_expires_at\": null
                             },
-                            \"user_input\": \"This is a test.\",
+                            \"user_input\": \"""" + prompt + """\",
                             \"status\":\"FULFILLED\"
                         }
                     }
                 }"""
             }
-        })
+        }
+
+    def sleep(self, time: int):
+        async def sleep_for():
+            await asyncio.sleep(time)
+        self._loop.run_until_complete(sleep_for())
+
+    def test_redeem(self):
+        print("[v] Launching custom event")
+        data = PubSubData(BotTests._GetRedeem())
         forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
 
+        # don't stop until done
+        self.sleep(10) # TODO get when bot is done
 
-        # don't stop
-        self._loop.run_forever()
+    def test_multiple_redeems(self):
+        print("[v] Launching x2 custom event")
+        data = PubSubData(BotTests._GetRedeem("An extensive text will be longer, thus more time-exhaustive."))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = PubSubData(BotTests._GetRedeem())
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+
+        # don't stop until done
+        self.sleep(20) # TODO get when bot is done
 
 if __name__ == '__main__':
     unittest.main()

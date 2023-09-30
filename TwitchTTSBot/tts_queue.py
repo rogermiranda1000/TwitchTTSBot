@@ -9,6 +9,7 @@ from audioserver import AudioServer
 from synthesizers.synthesizer import TTSSynthesizer
 
 import os
+from pathlib import Path
 import uuid
 
 import asyncio
@@ -38,12 +39,11 @@ class TTSQueue:
     def __init_queue(self):
         async def tts_queue():
             while True:
-                async with self._queued_element_notifier:
-                    await self._queued_element_notifier.wait()
-                item = self._processing_input.get(block=True, timeout=2)
+                if self._processing_input.empty():
+                    async with self._queued_element_notifier:
+                        await self._queued_element_notifier.wait()
 
-                if item is not None:
-                    yield item
+                yield self._processing_input.get(block=True, timeout=2)
 
         queue = pl.task.from_iterable(tts_queue())                  \
                     | pl.task.map(self.__infere)                    \
@@ -63,7 +63,6 @@ class TTSQueue:
     async def enqueue(self, requested_by: str, text: str):
         target_file = str(uuid.uuid4().hex) + '.wav'
         target_path = os.path.join(self._audios_path, target_file)
-        print(f"[v] Synthesizing '{text}' into {target_file}")
         e = TTSQueueEntry(requested_by, text, target_path)
         self._processing_input.put(e)
         
@@ -75,8 +74,12 @@ class TTSQueue:
         """
         Infere TTS
         """
+        print(f"[v] Synthesizing '{e.text}' into {e.file_name}")
+
         target_path = e.path # the target_path is the path set by the last iterator
         await self._synthesizer.synthesize(e.text, target_path)
+
+        print(f"[v] '{e.text}' synthetized.")
         return e
 
     async def __play(self, e: TTSQueueEntry) -> TTSQueueEntry:
@@ -99,6 +102,7 @@ class TTSQueue:
         self._current = None
         self._play_semaphore.release()
 
+        print(f"[v] Cleaning {e.file_name}...")
         os.remove(e.path) # remove (already played) file
 
         return None # finished
@@ -136,6 +140,10 @@ class TTSQueueEntry:
     @path.setter
     def path(self, path: str):
         self._path = path
+    
+    @property
+    def file_name(self) -> str:
+        return None if self._path is None else Path(self._path).name
 
     @property
     def processing(self) -> bool:
