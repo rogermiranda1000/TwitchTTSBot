@@ -79,3 +79,5 @@ Optional additional properties:
 ##### Generating the SSL credentials
 
 Inside the `TwitchTTSBot/` folder, run `openssl req -new -x509 -keyout key.pem -out server.pem -days 365 -nodes`.
+
+You can also get a **secure** SSL credentials pointing to an existant domain by following the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal). Note: you'll have to open the port 80 before running the command.
