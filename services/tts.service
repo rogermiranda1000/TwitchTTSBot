@@ -1,0 +1,11 @@
+[Unit]
+Description=TTS starter
+After=network.target tts-web.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/rogermiranda1000/TwitchTTSBot/TwitchTTSBot
+ExecStart=/home/rogermiranda1000/anaconda3/envs/tts/bin/python3 bot.py
+
+[Install]
+WantedBy=multi-user.target
