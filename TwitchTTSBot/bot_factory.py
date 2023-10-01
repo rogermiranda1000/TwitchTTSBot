@@ -30,6 +30,9 @@ def _get_model_name() -> str:
 def _get_character_limit() -> int:
     return None if 'input_limit' not in _get_config_json() else _get_config_json()['input_limit']
 
+def _get_token() -> str:
+    return _get_config_json()['secret']
+
 def _get_audios() -> dict:
     return {} if 'audios' not in _get_config_json() else _get_config_json()['audios']
 
@@ -109,4 +112,4 @@ def instantiate(synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
         queue_pre_inference.append(pl.task.map(segment_input))
 
     # return the instance
-    return TwitchTTSBot.instance(WebServer(), synthesizer if synthesizer is not None else RVCTTSSynthesizer(model=_get_model_name()), queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)
+    return TwitchTTSBot.instance(WebServer(secret_token=_get_token()), synthesizer if synthesizer is not None else RVCTTSSynthesizer(model=_get_model_name()), queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)

@@ -68,7 +68,7 @@ class TwitchTTSBot(BaseBot):
         print(f"[v] The user {user} was banned by {mod} ({time})")
         await self._queue.erase(user)
 
-def _main(args):
+def main():
     import bot_factory
     bot_factory.instantiate().run()
 
