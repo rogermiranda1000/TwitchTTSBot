@@ -1,5 +1,5 @@
 # TwitchTTSBot
-A Twitch bot that reads point redemptions.
+A Twitch bot that reads point redemptions with a custom trained voice.
 
 ## Dependencies
 

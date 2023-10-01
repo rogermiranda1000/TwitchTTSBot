@@ -9,6 +9,7 @@ import os, json, uuid, random, re
 from typing import List
 from bot import TwitchTTSBot
 import shutil
+from synthesizers.synthesizer import TTSSynthesizer
 from synthesizers.rvc_synthesizer import RVCTTSSynthesizer
 from functools import cache
 
@@ -81,7 +82,7 @@ def _splits_to_segments(found: List[str], audios: dict, into: List[TTSSegment]):
 
         into.append(e)
 
-def instantiate() -> TwitchTTSBot:
+def instantiate(synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
     queue_pre_inference = []
     queue_post_inference = []
 
@@ -108,4 +109,4 @@ def instantiate() -> TwitchTTSBot:
         queue_pre_inference.append(pl.task.map(segment_input))
 
     # return the instance
-    return TwitchTTSBot.instance(WebServer(), RVCTTSSynthesizer(model=_get_model_name()), queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)
+    return TwitchTTSBot.instance(WebServer(), synthesizer if synthesizer is not None else RVCTTSSynthesizer(model=_get_model_name()), queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)
