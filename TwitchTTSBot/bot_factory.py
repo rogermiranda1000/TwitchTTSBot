@@ -117,7 +117,7 @@ def _generate_voice_splits(segment: TTSSegment, models: List[RVCTTSSynthesizer])
 
         regex_pattern = re.compile(r'(?: |^)' + re.escape(model.model.alias) + r': ') # find pattern (sanitized), followed by spaces or begin/end
         for segment in prev:
-            split = re.split(regex_pattern, segment.text)
+            split = re.split(regex_pattern, segment.text, re.IGNORECASE)
 
             more_split = split[0].strip()
             if len(more_split) > 0:
