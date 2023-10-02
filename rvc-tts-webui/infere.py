@@ -108,10 +108,11 @@ def main():
     argParser.add_argument("-m", "--model", required=True)
     argParser.add_argument("-t", "--text", required=True)
     argParser.add_argument("-o", "--out", default='out.wav')
+    argParser.add_argument("-v", "--voice", default='en-US-AriaNeural-Female')
 
     args = argParser.parse_args()
 
-    infere(args.model, args.text, args.out, speaker='en-US-MichelleNeural-Female')
+    infere(args.model, args.text, args.out, speaker=args.voice)
 
 if __name__ == '__main__':
     main()

@@ -54,14 +54,23 @@ You'll have to edit `config.json`:
 - Set the bot name in `nick` and `owner`
 - Set the desired secret key in a new entry: `"secret": "admin"`. This will be needed for the audio player, as you'll have to enter to `localhost:7890?token=<secret>`
 - Set the desired redeem name in a new entry: `"redeem": "Custom TTS"`
-- Set the `RVC-based TTS` model name in a new entry: `"model": "<model name>"`
 - Set the app id in `client_id`
 - Set the OAuth token in `"oauth": "oauth:<token>"`
 - Set the PubSub token in a new entry: `"pubsub": "<token>"`
+- Set the `RVC-based TTS` model name in a new entry:
+```
+"voices": {
+    "<model name>": {
+        "model-name": "<model name>",
+        "model-voice": "en-US-AriaNeural-Female"
+    }
+}
+```
 
 Optional additional properties:
 
 - You can add a character limit by setting `"input_limit": 450`
+- You can add a segments limit by setting `"segments_limit": 12`. Note: one segment is one change of model, or a sound being played.
 - To add sounds to be replaced you'll have to add an `audios` folder and place there the .wav; then create a new `audios` entry with each audio and :
 ```
 "audios": {

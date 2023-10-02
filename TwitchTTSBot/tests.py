@@ -131,5 +131,21 @@ class BotTests(unittest.TestCase):
         # don't stop until done
         self.sleep(15) # TODO get when bot is done
 
+    def test_audios(self):
+        print("[v] Launching custom event (audio)")
+        data = PubSubData(BotTests._GetRedeem("[pop]"))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+
+        # don't stop until done
+        self.sleep(15) # TODO get when bot is done
+
+    def test_multiple_voices(self):
+        print("[v] Launching custom event (multiple voices)")
+        data = PubSubData(BotTests._GetRedeem("Does this work? glados: Yes, it seems to work just fine."))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+
+        # don't stop until done
+        self.sleep(20) # TODO get when bot is done
+
 if __name__ == '__main__':
     unittest.main()

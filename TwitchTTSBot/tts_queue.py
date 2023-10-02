@@ -8,6 +8,7 @@ from audioserver import AudioServer
 
 from synthesizers.synthesizer import TTSSynthesizer
 from pydub import AudioSegment
+import shutil
 
 import os
 from pathlib import Path
@@ -20,9 +21,9 @@ from typing import Tuple,List
 import multiprocessing as mp
 
 class TTSQueue:
-    def __init__(self, serve_to: AudioServer, synthesizer: TTSSynthesizer, pre_inference: List[Partial[pl.task.Stage[T]]] = None, post_inference: List[Partial[pl.task.Stage[T]]] = None):
+    def __init__(self, serve_to: AudioServer, default_synthesizer: TTSSynthesizer, pre_inference: List[Partial[pl.task.Stage[T]]] = None, post_inference: List[Partial[pl.task.Stage[T]]] = None):
         self._serve_to = serve_to
-        self._synthesizer = synthesizer
+        self._default_synthesizer = default_synthesizer
         
         self._audios_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../audio-server/audios/')
 
@@ -75,7 +76,7 @@ class TTSQueue:
         # TODO stop thread when closing
 
     async def enqueue(self, requested_by: str, text: str):
-        e = TTSQueueEntry(requested_by, GeneratedTTSSegment(text))
+        e = TTSQueueEntry(requested_by, GeneratedTTSSegment(text, self._default_synthesizer))
         self._processing_input.put(e)
         
         # notify the tts_queue loop
@@ -87,20 +88,11 @@ class TTSQueue:
         Infere TTS
         """
         for index, segment in enumerate(e.segments):
-            if not segment.processing:
-                continue # already processed
-
-            if not isinstance(segment, GeneratedTTSSegment):
-                raise ValueError("Unrecognised class " + segment.__class__.__name__ + " and not ready to process.")
-
             target_file = str(uuid.uuid4().hex) + '.wav'
             target_path = os.path.join(self._audios_path, target_file)
             print(f"[v] Synthesizing segment {index+1}/{len(e.segments)} into {target_file}...")
 
-            await self._synthesizer.synthesize(segment.text, target_path)
-            segment.path = target_path
-
-            print(f"[v] '{segment.text}' synthetized.")
+            await segment.generate(target_path)
 
         return e
 
@@ -170,7 +162,7 @@ class TTSQueue:
 class TTSQueueEntry:
     def __init__(self, requested_by: str, *segments: Tuple[TTSSegment, ...], path: str = None):
         self._requested_by = requested_by
-        self._segments = list(segments)
+        self.segments = list(segments)
         self.path = path
         self.invalidated = False
     
@@ -185,14 +177,18 @@ class TTSQueueEntry:
     @path.setter
     def path(self, path: str):
         self._path = path
-    
-    @property
-    def invalidated(self) -> bool:
-        return self._invalidated
 
     @property
     def segments(self) -> List[TTSSegment]:
         return self._segments
+
+    @segments.setter
+    def segments(self, segments: List[TTSSegment]):
+        self._segments = segments
+    
+    @property
+    def invalidated(self) -> bool:
+        return self._invalidated
 
     @invalidated.setter
     def invalidated(self, invalidated: bool):
@@ -207,7 +203,10 @@ class TTSQueueEntry:
         return self._path is None
 
 class TTSSegment:
-    def __init__(self, path: str = None):
+    def __init__(self):
+        self.path = None
+
+    async def generate(self, path: str):
         self.path = path
     
     @property
@@ -226,10 +225,24 @@ class TTSSegment:
     def processing(self) -> bool:
         return self._path is None
 
+class PregeneratedTTSSegment(TTSSegment):
+    def __init__(self, copy_from: str):
+        super().__init__()
+        self._copy_from = copy_from
+
+    async def generate(self, path: str):
+        await super().generate(path)
+        shutil.copyfile(self._copy_from, path)
+
 class GeneratedTTSSegment(TTSSegment):
-    def __init__(self, text: str, path: str = None):
-        super().__init__(path)
+    def __init__(self, text: str, synthesizer: TTSSynthesizer):
+        super().__init__()
         self._text = text
+        self._synthesizer = synthesizer
+
+    async def generate(self, path: str):
+        await super().generate(path)
+        await self._synthesizer.synthesize(self.text, self.path)
     
     @property
     def text(self) -> str:
@@ -238,3 +251,7 @@ class GeneratedTTSSegment(TTSSegment):
     @text.setter
     def text(self, text: str):
         self._text = text
+
+    @property
+    def synthesizer(self) -> TTSSynthesizer:
+        return self._synthesizer
