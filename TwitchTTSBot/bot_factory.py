@@ -12,6 +12,9 @@ from synthesizers.synthesizer import TTSSynthesizer
 from synthesizers.rvc_synthesizer import RVCTTSSynthesizer,RVCModel
 from functools import cache
 
+import importlib
+from processing.processing import ProcessingElement,PreProcessingElement,PostProcessingElement
+
 import pypeln as pl
 import asyncio
 from tts_queue import TTSQueueEntry, TTSSegment, GeneratedTTSSegment, PregeneratedTTSSegment
@@ -127,6 +130,29 @@ def _generate_voice_splits(segment: TTSSegment, models: List[RVCTTSSynthesizer])
 
     return r
 
+def _append_processing_folder_modifiers(queue_pre_inference: 'List[Partial[pl.task.Stage[T]]]', queue_post_inference: 'List[Partial[pl.task.Stage[T]]]'):
+    processing_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'processing')
+    python_processing_files = [ 'processing.' + f.name[:-len('.py')] for f in os.scandir(processing_folder) if f.is_file() and f.name.endswith('.py') ]
+    try:
+        python_processing_files.remove('processing.processing') # this is not a custom module
+    except ValueError:
+        pass
+
+    for python_processing_file in python_processing_files:
+        module = importlib.import_module(python_processing_file)
+
+        # TODO pretty sure this can be enhanced somehow
+        for attr in dir(module):
+            potential_class = getattr(module, attr)
+            if type(potential_class) is type and issubclass(potential_class, ProcessingElement):
+                if attr == 'PreProcessingElement' or attr == 'PostProcessingElement':
+                    continue
+                
+                print(f"[v] Class {attr} seems to be a ProcessingElement")
+                e = potential_class()
+                add_to = queue_pre_inference if isinstance(e, PreProcessingElement) else queue_post_inference
+                e.add_to_queue(add_to)
+
 def instantiate(default_synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
     queue_pre_inference = []
     queue_post_inference = []
@@ -172,6 +198,8 @@ def instantiate(default_synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
             return e
 
         queue_pre_inference.append(pl.task.map(truncate_input))
+
+    _append_processing_folder_modifiers(queue_pre_inference, queue_post_inference)
 
     # return the instance
     return TwitchTTSBot.instance(WebServer(secret_token=_get_token()), default_synthesizer if default_synthesizer is not None else models[0], queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)
