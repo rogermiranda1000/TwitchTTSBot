@@ -141,7 +141,7 @@ class BotTests(unittest.TestCase):
 
     def test_multiple_voices(self):
         print("[v] Launching custom event (multiple voices)")
-        data = PubSubData(BotTests._GetRedeem("Does this work? glados: Yes, it seems to work just fine."))
+        data = PubSubData(BotTests._GetRedeem("Does this work? glados: Yes, it seems to work just fine. nedia: Cool!"))
         forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
 
         # don't stop until done

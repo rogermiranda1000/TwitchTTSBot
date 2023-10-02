@@ -101,6 +101,32 @@ def _get_tts_models() -> List[RVCTTSSynthesizer]:
 
     return r
 
+def _generate_voice_splits(segment: TTSSegment, models: List[RVCTTSSynthesizer]) -> List[TTSSegment]:
+    if not isinstance(segment, GeneratedTTSSegment):
+        raise ValueError("This function was mean to be used with a single text segment")
+
+    r = [ segment ]
+    prev = None
+
+    for model in models:
+        prev = r
+        r = []
+
+        regex_pattern = re.compile(r'(?: |^)' + re.escape(model.model.alias) + r': ') # find pattern (sanitized), followed by spaces or begin/end
+        for segment in prev:
+            split = re.split(regex_pattern, segment.text)
+
+            more_split = split[0].strip()
+            if len(more_split) > 0:
+                r.append(GeneratedTTSSegment(text=more_split, synthesizer=segment.synthesizer)) # as it's in the left-side, use the previous synthesizer
+            for more_split in split[1:]: # skip the first (as we've already added it)
+                # as we're on the 2nd index (or higher), it did found a match in between
+                more_split = more_split.strip()
+                if len(more_split) > 0: # if it's at the end of the string it will produce an empty string
+                    r.append(GeneratedTTSSegment(text=more_split, synthesizer=model))
+
+    return r
+
 def instantiate(default_synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
     queue_pre_inference = []
     queue_post_inference = []
@@ -115,7 +141,12 @@ def instantiate(default_synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
         queue_pre_inference.append(pl.task.map(truncate_input))
 
     models = _get_tts_models()
-    # TODO change voices
+
+    # change voices
+    async def voice_delimiter(e: TTSQueueEntry):
+        e.segments = _generate_voice_splits(e.segments[0], models)
+        return e
+    queue_pre_inference.append(pl.task.map(voice_delimiter))
     
     # replace audios
     audios = _get_audios()
