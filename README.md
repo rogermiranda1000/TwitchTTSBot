@@ -1,6 +1,8 @@
 # TwitchTTSBot
 A Twitch bot that reads point redemptions with a custom trained voice.
 
+Check the results on [my TTS gist](https://gist.github.com/rogermiranda1000/083eec93ebbdd1dcf8edea51cfc16bc5#examples).
+
 ## Dependencies
 
 #### Anaconda
