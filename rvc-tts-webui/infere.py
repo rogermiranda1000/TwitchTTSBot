@@ -105,7 +105,7 @@ def infere(model: str, text: str, out: str, speed: int = 0, transpose: int = 0, 
     try:
         shutil.move(audio, out)
     except Exception:
-        AudioSegment.empty().export(out_f = out, format = "wav")
+        AudioSegment.silent(duration=10).export(out_f = out, format = "wav")
 
 def main():
     argParser = ArgumentParser()
