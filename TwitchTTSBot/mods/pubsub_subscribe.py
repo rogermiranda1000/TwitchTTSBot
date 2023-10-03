@@ -41,4 +41,5 @@ class PubSubSubscriberMod(Mod):
                 return
 
             self._last_request = data
-            await TwitchTTSBot.instance()._on_channel_points_redeemed(data.user_login_name, data.user_input)
+            if len(data.user_input.strip()) > 0:
+                await TwitchTTSBot.instance()._on_channel_points_redeemed(data.user_login_name, data.user_input)

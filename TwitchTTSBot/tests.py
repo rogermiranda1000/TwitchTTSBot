@@ -100,6 +100,25 @@ class BotTests(unittest.TestCase):
         # don't stop until done
         self.sleep(10) # TODO get when bot is done
 
+    def test_empty(self):
+        print("[v] Launching custom event (empty)")
+        data = PubSubData(BotTests._GetRedeem(""))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+
+        # don't stop until done
+        self.sleep(8) # TODO get when bot is done
+
+    def test_null(self):
+        """
+        A not-empty request, but the TTS will fail to generate (causing a null response)
+        """
+        print("[v] Launching custom event (null)")
+        data = PubSubData(BotTests._GetRedeem(": "))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+
+        # don't stop until done
+        self.sleep(8) # TODO get when bot is done
+
     def test_multiple_redeems(self):
         print("[v] Launching x2 custom event")
         data = PubSubData(BotTests._GetRedeem("An extensive text will be longer, thus more time-exhaustive."))

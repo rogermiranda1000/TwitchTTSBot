@@ -9,6 +9,7 @@ from gradio_client import Client
 from argparse import ArgumentParser
 from time import sleep
 from typing import List
+from pydub import AudioSegment # generate empty audio if fails
 
 def get_speakers() -> List[str]:
     return ['af-ZA-AdriNeural-Female', 'af-ZA-WillemNeural-Male', 'sq-AL-AnilaNeural-Female', 'sq-AL-IlirNeural-Male',
@@ -101,7 +102,10 @@ def infere(model: str, text: str, out: str, speed: int = 0, transpose: int = 0, 
     )
 
     audio = result[-1]
-    shutil.move(audio, out)
+    try:
+        shutil.move(audio, out)
+    except Exception:
+        AudioSegment.empty().export(out_f = out, format = "wav")
 
 def main():
     argParser = ArgumentParser()
