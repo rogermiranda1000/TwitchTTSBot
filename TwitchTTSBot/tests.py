@@ -150,6 +150,21 @@ class BotTests(unittest.TestCase):
         # don't stop until done
         self.sleep(15) # TODO get when bot is done
 
+    def test_expired_ban(self):
+        print("[v] Launching custom event (x1 to be skipped, x1 to be played)")
+        data = PubSubData(BotTests._GetRedeem(user='to_ban3'))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        
+        self._loop.run_until_complete(self._bot._banned_user('to_ban3', 'rogermiranda1000', 1))
+        
+        self.sleep(15) # let it process
+
+        data = PubSubData(BotTests._GetRedeem("Sorry for that", user='to_ban3'))
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+
+        # don't stop until done
+        self.sleep(10) # TODO get when bot is done
+
     def test_audios(self):
         print("[v] Launching custom event (audio)")
         data = PubSubData(BotTests._GetRedeem("[pop]"))

@@ -20,6 +20,8 @@ from pypeln.utils import Partial,T
 from typing import Tuple,List
 import multiprocessing as mp
 
+import datetime as dt # bans
+
 class TTSQueue:
     def __init__(self, serve_to: AudioServer, default_synthesizer: TTSSynthesizer, pre_inference: List[Partial[pl.task.Stage[T]]] = None, post_inference: List[Partial[pl.task.Stage[T]]] = None):
         self._serve_to = serve_to
@@ -37,7 +39,7 @@ class TTSQueue:
         self._processing_input = mp.Queue()
         self._play_semaphore = asyncio.Lock() # only one in between `__play` and `__clean`
         self.__init_queue(pre_inference, post_inference)
-        self._bans = set()
+        self._bans = []
 
         # website callbacks
         self._website_notifier = asyncio.Condition()
@@ -126,7 +128,8 @@ class TTSQueue:
         """
         await self._play_semaphore.acquire() # only one in between `__play` and `__clean`
 
-        e.invalidated = e.requested_by in self._bans or e.invalidated or e.processing # if user is banned, or it is invalidated, or it wasn't made at all, then skip
+        self._bans = [ ban for ban in self._bans if e.requested_on <= ban.until ] # remove expired bans
+        e.invalidated = any(e.requested_by == ban.user for ban in self._bans) or e.invalidated or e.processing # if user is banned, or it is invalidated, or it wasn't made at all, then skip
         if not e.invalidated:
             await self._serve_to.stream_audio(e.path)
             self._current = e
@@ -148,7 +151,7 @@ class TTSQueue:
         return None # finished
 
     async def erase(self, requested_by: str):
-        self._bans.add(requested_by)
+        self._bans.append(Ban(requested_by))
 
         if self._current is not None and self._current.requested_by == requested_by:
             # last request made by the user
@@ -159,16 +162,34 @@ class TTSQueue:
         async with self._website_notifier:
             self._website_notifier.notify()
 
+class Ban:
+    def __init__(self, user: str, until: dt.datetime = None):
+        self._user = user
+        self._until = until if until is not None else (dt.datetime.now() + dt.timedelta(seconds=10))
+
+    @property
+    def user(self) -> str:
+        return self._user
+
+    @property
+    def until(self) -> dt.datetime:
+        return self._until
+
 class TTSQueueEntry:
-    def __init__(self, requested_by: str, *segments: Tuple[TTSSegment, ...], path: str = None):
+    def __init__(self, requested_by: str, *segments: Tuple[TTSSegment, ...], path: str = None, requested_on: dt.datetime = None):
         self._requested_by = requested_by
         self.segments = list(segments)
         self.path = path
         self.invalidated = False
+        self._requested_on = requested_on if requested_on is not None else dt.datetime.now()
     
     @property
     def requested_by(self) -> str:
         return self._requested_by
+
+    @property
+    def requested_on(self) -> dt.datetime:
+        return self._requested_on
     
     @property
     def path(self) -> str:
