@@ -31,8 +31,8 @@ If the install raises the error `Failed building wheel for pyworld`, run `python
 
 ##### Install
 
-- Run `python3 -m pip install PythonTwitchBotFramework`
-- For the bot dependencies, run `python3 -m pip install pypeln`
+- Run `python3 -m pip install PythonTwitchBotFramework==2.11.5`
+- For the bot dependencies, run `python3 -m pip install pypeln==0.4.9`
 
 ##### Creating the Twitch bot
 
@@ -59,12 +59,12 @@ You'll have to edit `config.json`:
 - Set the app id in `client_id`
 - Set the OAuth token in `"oauth": "oauth:<token>"`
 - Set the PubSub token in a new entry: `"pubsub": "<token>"`
-- Set the `RVC-based TTS` model name in a new entry:
+- Set the `RVC-based TTS` model name in a new entry; you can also set for each model the Pitch shift in an `pitch-shift` entry:
 ```
 "voices": {
     "<model name>": {
-        "model-name": "<model name>",
-        "model-voice": "en-US-AriaNeural-Female"
+        "name": "<model name>",
+        "voice": "en-US-AriaNeural-Female"
     }
 }
 ```

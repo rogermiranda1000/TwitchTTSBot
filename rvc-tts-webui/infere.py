@@ -89,6 +89,15 @@ def get_speakers() -> List[str]:
             'vi-VN-NamMinhNeural-Male', 'cy-GB-AledNeural-Male', 'cy-GB-NiaNeural-Female', 'zu-ZA-ThandoNeural-Female', 'zu-ZA-ThembaNeural-Male']
 
 def infere(model: str, text: str, out: str, speed: int = 0, transpose: int = 0, speaker: str = 'en-US-AriaNeural-Female'):
+    """
+    Run TTS.
+    :param model:       Model name (folder name inside `weights`)
+    :param text:        Text to infere
+    :param out:         Where to place the result
+    :param speed:       Talk speed (from -100 to 100)
+    :param transpose:   Pitch note shift
+    :param speaker:     Base speaker to infere the TTS (check `get_speakers()` list)
+    """
     client = Client("http://127.0.0.1:7860/")
     result = client.predict(model,
                     speed,
@@ -111,12 +120,14 @@ def main():
     argParser = ArgumentParser()
     argParser.add_argument("-m", "--model", required=True)
     argParser.add_argument("-t", "--text", required=True)
+    argParser.add_argument("-sp", "--speed", type=int, default=0)
+    argParser.add_argument("-tr", "--transpose", type=int, default=0)
     argParser.add_argument("-o", "--out", default='out.wav')
     argParser.add_argument("-v", "--voice", default='en-US-AriaNeural-Female')
 
     args = argParser.parse_args()
 
-    infere(args.model, args.text, args.out, speaker=args.voice)
+    infere(args.model, args.text, args.out, speed=args.speed, transpose=args.transpose, speaker=args.voice)
 
 if __name__ == '__main__':
     main()

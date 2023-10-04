@@ -96,11 +96,15 @@ def _get_tts_models() -> List[RVCTTSSynthesizer]:
 
     voices = _get_config_json()['voices']
     for voice,data in voices.items():
-        model_name = data['model-name']
+        model_name = data['name']
         if model_name not in models:
             raise ValueError(f"Model {model_name} not found in models folder")
 
-        r.append(RVCTTSSynthesizer(RVCModel(voice, model_name, data['model-voice'])))
+        pitch_shift = 0
+        if 'pitch-shift' in data:
+            pitch_shift = data['pitch-shift']
+
+        r.append(RVCTTSSynthesizer(RVCModel(voice, model_name, data['voice'], pitch_shift=pitch_shift)))
 
     return r
 
