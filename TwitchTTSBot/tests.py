@@ -1,6 +1,5 @@
 import unittest
 from bot import TwitchTTSBot
-from mods.pubsub_subscribe import PubSubSubscriberMod
 from twitchbot import Event,PubSubData,PubSubPointRedemption
 from twitchbot import forward_event
 import asyncio
@@ -46,7 +45,7 @@ class BotTests(unittest.TestCase):
                             \"reward\": {
                                 \"id\": \"8a7da6dc-cb5c-42da-b522-8601e5126677\",
                                 \"channel_id\": \"35927458\",
-                                \"title\": \"""" + PubSubSubscriberMod._GetRedeemName() + """\",
+                                \"title\": \"""" + TwitchTTSBot._GetRedeemName() + """\",
                                 \"prompt\": \"test for pubsub custom reward with texts\",
                                 \"cost\": 1,
                                 \"is_user_input_required\": true,
@@ -87,6 +86,19 @@ class BotTests(unittest.TestCase):
             }
         }
 
+    @staticmethod
+    def _GetRedeemData(prompt: str = "This is a test.", user: str = 'userman2') -> PubSubPointRedemption:
+        data = PubSubData(BotTests._GetRedeem(prompt, user))
+        return PubSubPointRedemption(data)
+
+    @staticmethod
+    def _GenerateEvent(redeem_data: PubSubPointRedemption):
+        legacy_redeem_msg = f'{redeem_data.user_login_name} redeemed reward {redeem_data.reward_id} in #todo'
+        forward_event(Event.on_channel_points_redemption, legacy_redeem_msg, redeem_data.reward_id)
+
+        data = redeem_data.data
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, redeem_data)
+
     def sleep(self, time: int):
         async def sleep_for():
             await asyncio.sleep(time)
@@ -94,16 +106,16 @@ class BotTests(unittest.TestCase):
 
     def test_redeem(self):
         print("[v] Launching custom event")
-        data = PubSubData(BotTests._GetRedeem())
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData()
+        BotTests._GenerateEvent(data)
 
         # don't stop until done
         self.sleep(10) # TODO get when bot is done
 
     def test_empty(self):
         print("[v] Launching custom event (empty)")
-        data = PubSubData(BotTests._GetRedeem(""))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData("")
+        BotTests._GenerateEvent(data)
 
         # don't stop until done
         self.sleep(8) # TODO get when bot is done
@@ -113,26 +125,26 @@ class BotTests(unittest.TestCase):
         A not-empty request, but the TTS will fail to generate (causing a null response)
         """
         print("[v] Launching custom event (null)")
-        data = PubSubData(BotTests._GetRedeem(": "))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData(": ")
+        BotTests._GenerateEvent(data)
 
         # don't stop until done
         self.sleep(8) # TODO get when bot is done
 
     def test_multiple_redeems(self):
         print("[v] Launching x2 custom event")
-        data = PubSubData(BotTests._GetRedeem("An extensive text will be longer, thus more time-exhaustive."))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
-        data = PubSubData(BotTests._GetRedeem())
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData("An extensive text will be longer, thus more time-exhaustive.")
+        BotTests._GenerateEvent(data)
+        data = BotTests._GetRedeemData()
+        BotTests._GenerateEvent(data)
 
         # don't stop until done
         self.sleep(20) # TODO get when bot is done
 
     def test_interrupt(self):
         print("[v] Launching custom event (to be interrupted)")
-        data = PubSubData(BotTests._GetRedeem("An extensive text will be longer, thus more time-exhaustive.", user='to_ban'))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData("An extensive text will be longer, thus more time-exhaustive.", user='to_ban')
+        BotTests._GenerateEvent(data)
         
         self.sleep(8) # wait to process and start speaking
         self._loop.run_until_complete(self._bot._banned_user('to_ban', 'rogermiranda1000', 1))
@@ -142,8 +154,8 @@ class BotTests(unittest.TestCase):
 
     def test_skip(self):
         print("[v] Launching custom event (to be skipped)")
-        data = PubSubData(BotTests._GetRedeem(user='to_ban2'))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData(user='to_ban2')
+        BotTests._GenerateEvent(data)
         
         self._loop.run_until_complete(self._bot._banned_user('to_ban2', 'rogermiranda1000', 1))
 
@@ -152,31 +164,68 @@ class BotTests(unittest.TestCase):
 
     def test_expired_ban(self):
         print("[v] Launching custom event (x1 to be skipped, x1 to be played)")
-        data = PubSubData(BotTests._GetRedeem(user='to_ban3'))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData(user='to_ban3')
+        BotTests._GenerateEvent(data)
         
         self._loop.run_until_complete(self._bot._banned_user('to_ban3', 'rogermiranda1000', 1))
         
         self.sleep(15) # let it process
 
-        data = PubSubData(BotTests._GetRedeem("Sorry for that", user='to_ban3'))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData("Sorry for that", user='to_ban3')
+        BotTests._GenerateEvent(data)
 
         # don't stop until done
         self.sleep(10) # TODO get when bot is done
 
+    def test_automod_block(self):
+        print("[v] Launching custom event (x1 to be pre-blocked)")
+        data = BotTests._GetRedeemData(user='to_ban4')
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data.data, data) # only redeem; no legacy redeem event
+        
+        self.sleep(10) # let it process
+
+    def test_automod_false_positive(self):
+        print("[v] Launching custom event (x1 to be pre-blocked but allowed)")
+        data = BotTests._GetRedeemData("I hope this will go through.")
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data.data, data)
+
+        self.sleep(10) # let some time
+
+        legacy_redeem_msg = f'{data.user_login_name} redeemed reward {data.reward_id} in #todo'
+        forward_event(Event.on_channel_points_redemption, legacy_redeem_msg, data.reward_id)
+
+        self.sleep(15) # let it process
+
+    def test_automod_bypass(self):
+        """
+        What if one message gets blocked, and then another is sent? Will the first (blocked) message go through?
+        """
+
+        print("[v] Launching custom event (x1 to be pre-blocked, x1 to be played)")
+        data = BotTests._GetRedeemData('[maniacal laugh]', user='to_ban5')
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data.data, data) # only redeem; no legacy redeem event
+        
+        self.sleep(10) # let some time
+
+        data = BotTests._GetRedeemData(user='to_ban5')
+        BotTests._GenerateEvent(data)
+
+        # don't stop until done
+        self.sleep(20) # TODO get when bot is done
+
+
     def test_audios(self):
         print("[v] Launching custom event (audio)")
-        data = PubSubData(BotTests._GetRedeem("[pop]"))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData("[pop]")
+        BotTests._GenerateEvent(data)
 
         # don't stop until done
         self.sleep(15) # TODO get when bot is done
 
     def test_multiple_voices(self):
         print("[v] Launching custom event (multiple voices)")
-        data = PubSubData(BotTests._GetRedeem("Does this work? glados: Yes, it seems to work just fine. nedia: Cool!"))
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, PubSubPointRedemption(data))
+        data = BotTests._GetRedeemData("Does this work? glados: Yes, it seems to work just fine. nedia: Cool!")
+        BotTests._GenerateEvent(data)
 
         # don't stop until done
         self.sleep(20) # TODO get when bot is done

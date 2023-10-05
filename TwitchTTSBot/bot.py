@@ -8,6 +8,7 @@ sys.path.append("../audio-server")
 from audioserver import AudioServer
 
 from tts_queue import TTSQueue
+from automod_manager import AutomodManager
 import pypeln as pl
 from pypeln.utils import Partial,T
 from typing import List
@@ -22,6 +23,7 @@ class TwitchTTSBot(BaseBot):
         super().__init__()
         self._web = web
         self._queue = TTSQueue(self._web, synthesizer, queue_pre_inference, queue_post_inference)
+        self._automod_manager = AutomodManager(self.on_validated_redeem)
 
         self._redeem_name = TwitchTTSBot._GetRedeemName()
 
@@ -54,18 +56,27 @@ class TwitchTTSBot(BaseBot):
         if timeout_search:
             await self._banned_user(timeout_search.group(3), timeout_search.group(2), sys.maxsize if timeout_search.group(1) is None else int(timeout_search.group(1)))
 
-    async def on_channel_points_redemption(self, msg: Message, reward: str):
-        print(f"[v] Legacy point redeem call: {msg} ({reward})")
-        # <user> redeemed reward <reward ID> in #<channel>
+    async def on_channel_points_redemption(self, msg: Message, _: str):
+        print(f"[v] Legacy point redeem call: {msg}")
+
+        # redeem: <user> redeemed reward <reward ID> in #<channel>
+        redeem = r'^(\S+) redeemed reward (\S+) in #(\S+)$'
+        redeem_search = re.search(redeem, msg)
+
+        if redeem_search:
+            await self._automod_manager.on_channel_points_redemption(redeem_search.group(1), redeem_search.group(2), redeem_search.group(3))
     
     async def on_pubsub_custom_channel_point_reward(self, _: PubSubData, data: PubSubPointRedemption):
         print(f"[v] Point redeem call: {data.reward_title}, '{data.user_input}' (by {data.user_login_name})")
         print(str(data.redemption_id) + ' reward: ' + str(data.reward_id))
 
         if data.reward_title == self._redeem_name:
-            if len(data.user_input.strip()) > 0:
-                print(f"[v] The user {data.user_login_name} request the following TTS message: '{data.user_input}'")
-                await self._queue.enqueue(data.user_login_name, data.user_input)
+            await self._automod_manager.on_pubsub_channel_points_redemption(data)
+
+    async def on_validated_redeem(self, data: PubSubPointRedemption):
+        print(f"[v] The user {data.user_login_name} request the following TTS message: '{data.user_input}'")
+        if len(data.user_input.strip()) > 0:
+            await self._queue.enqueue(data.user_login_name, data.user_input)
     
     async def _banned_user(self, user: str, channel: str, time: int):
         print(f"[v] The user {user} was banned on {channel} ({time}s)")
