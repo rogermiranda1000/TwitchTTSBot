@@ -164,12 +164,12 @@ class BotTests(unittest.TestCase):
 
     def test_expired_ban(self):
         print("[v] Launching custom event (x1 to be skipped, x1 to be played)")
-        data = BotTests._GetRedeemData(user='to_ban3')
+        data = BotTests._GetRedeemData('[maniacal laugh]', user='to_ban3')
         BotTests._GenerateEvent(data)
         
         self._loop.run_until_complete(self._bot._banned_user('to_ban3', 'rogermiranda1000', 1))
         
-        self.sleep(15) # let it process
+        self.sleep(10) # let it process
 
         data = BotTests._GetRedeemData("Sorry for that", user='to_ban3')
         BotTests._GenerateEvent(data)
@@ -209,6 +209,28 @@ class BotTests(unittest.TestCase):
 
         data = BotTests._GetRedeemData(user='to_ban5')
         BotTests._GenerateEvent(data)
+
+        # don't stop until done
+        self.sleep(20) # TODO get when bot is done
+
+    def test_automod_bypass_2(self):
+        """
+        What if two messages gets blocked, and one gets allowed? (None should play, as it's undetermined which one was allowed)
+        """
+
+        print("[v] Launching custom event (x2 to be pre-blocked)")
+        data = BotTests._GetRedeemData('[maniacal laugh]', user='to_ban6')
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data.data, data) # only redeem; no legacy redeem event
+        
+        self.sleep(10) # let some time
+
+        data = BotTests._GetRedeemData(user='to_ban6')
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data.data, data) # only redeem; no legacy redeem event
+        
+        self.sleep(10) # let some time
+
+        legacy_redeem_msg = f'{data.user_login_name} redeemed reward {data.reward_id} in #todo'
+        forward_event(Event.on_channel_points_redemption, legacy_redeem_msg, data.reward_id)
 
         # don't stop until done
         self.sleep(20) # TODO get when bot is done

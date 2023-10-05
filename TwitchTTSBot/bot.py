@@ -15,6 +15,7 @@ from typing import List
 from twitchbot import BaseBot,Message,Channel
 from twitchbot import PubSubTopics,get_pubsub,PubSubData,PubSubPointRedemption
 from synthesizers.synthesizer import TTSSynthesizer
+import asyncio
 
 import re,sys,json
 
@@ -30,11 +31,13 @@ class TwitchTTSBot(BaseBot):
     def run(self):
         loop = self._get_event_loop()
         loop.run_until_complete(self._web.start()) # start the website
+        loop.create_task(self._automod_manager.loop()) # start the AutoMod manager
         super().run() # start (and keep running) the bot
 
     def run_in_async_task(self):
         loop = self._get_event_loop()
         loop.run_until_complete(self._web.start()) # start the website
+        loop.create_task(self._automod_manager.loop()) # start the AutoMod manager
         super().run_in_async_task() # start the bot
 
     async def shutdown(self):
@@ -57,21 +60,20 @@ class TwitchTTSBot(BaseBot):
             await self._banned_user(timeout_search.group(3), timeout_search.group(2), sys.maxsize if timeout_search.group(1) is None else int(timeout_search.group(1)))
 
     async def on_channel_points_redemption(self, msg: Message, _: str):
-        print(f"[v] Legacy point redeem call: {msg}")
-
         # redeem: <user> redeemed reward <reward ID> in #<channel>
         redeem = r'^(\S+) redeemed reward (\S+) in #(\S+)$'
         redeem_search = re.search(redeem, msg)
 
         if redeem_search:
             await self._automod_manager.on_channel_points_redemption(redeem_search.group(1), redeem_search.group(2), redeem_search.group(3))
+
+        print(f"[v] Legacy point redeem call: {msg}")
     
     async def on_pubsub_custom_channel_point_reward(self, _: PubSubData, data: PubSubPointRedemption):
-        print(f"[v] Point redeem call: {data.reward_title}, '{data.user_input}' (by {data.user_login_name})")
-        print(str(data.redemption_id) + ' reward: ' + str(data.reward_id))
-
         if data.reward_title == self._redeem_name:
             await self._automod_manager.on_pubsub_channel_points_redemption(data)
+
+        print(f"[v] Point redeem call: {data.reward_title}, '{data.user_input}' (by {data.user_login_name})")
 
     async def on_validated_redeem(self, data: PubSubPointRedemption):
         print(f"[v] The user {data.user_login_name} request the following TTS message: '{data.user_input}'")
