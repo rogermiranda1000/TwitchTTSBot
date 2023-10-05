@@ -146,6 +146,7 @@ def _append_processing_folder_modifiers(queue_pre_inference: 'List[Partial[pl.ta
         module = importlib.import_module(python_processing_file)
 
         # TODO pretty sure this can be enhanced somehow
+        # TODO check how the twitch bot did it https://github.com/sharkbound/PythonTwitchBotFramework/blob/8eb95864e3744705a057130e8193248328ccabe7/twitchbot/modloader.py#L334
         for attr in dir(module):
             potential_class = getattr(module, attr)
             if type(potential_class) is type and issubclass(potential_class, ProcessingElement):
@@ -206,4 +207,4 @@ def instantiate(default_synthesizer: TTSSynthesizer = None) -> TwitchTTSBot:
     _append_processing_folder_modifiers(queue_pre_inference, queue_post_inference)
 
     # return the instance
-    return TwitchTTSBot.instance(WebServer(secret_token=_get_token()), default_synthesizer if default_synthesizer is not None else models[0], queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)
+    return TwitchTTSBot(WebServer(secret_token=_get_token()), default_synthesizer if default_synthesizer is not None else models[0], queue_pre_inference=queue_pre_inference, queue_post_inference=queue_post_inference)
