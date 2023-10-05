@@ -59,6 +59,8 @@ class AutomodManager:
             async with self._list_notifier:
                 if len(self._legacy_pending) == 0:
                     await self._list_notifier.wait()
+                else:
+                    await asyncio.sleep(0.5) # give some time
 
             current_time = dt.datetime.now()
             to_check = [ l for l in self._legacy_pending if l.ms_difference(current_time) >= AutomodManager.MS_MARGIN ] # iterate only the messages once you've given the margin for the other event to come
@@ -83,6 +85,11 @@ class AutomodManager:
         if len(redeem_match) == 0:
             # no close events; check for allowed AutoMod
             redeem_match = [ ok for ok in self._redeem_pending if ok.object == legacy.object ] # TODO what if 2 pending, one prevented and the other allowed?
+            if len(redeem_match) > 1:
+                # 2 were pending, one got accepted (and we don't know which one is it, so we have to discard both).
+                # If by some case one was blocked by AutoMod, and the other one is a regular redeem and got joined in this iteration,
+                # we'll play this one in the next iteration.
+                redeem_match = [] # TODO instead of discarding it from the "check list" and iterating over and over again the same, remove it from the original list
 
         if len(redeem_match) > 0:
             print(f"[v] Redeem from {redeem_match[0].object.user_login_name} got an ok")
