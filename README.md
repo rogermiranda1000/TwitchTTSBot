@@ -3,6 +3,12 @@ A Twitch bot that reads point redemptions with a custom trained voice.
 
 Check the results on [my TTS gist](https://gist.github.com/rogermiranda1000/083eec93ebbdd1dcf8edea51cfc16bc5#examples).
 
+## Run
+
+Once you've done all the steps in [dependencies](#dependencies) you can run the bot.
+
+To run the bot you'll have to first run (inside the `tts` conda environment) `cd rvc-tts-webui && python3 app.py`, and then (simultaneously) `cd TwitchTTSBot && python3 bot.py`. Check the README inside the `services` folder to auto-run those steps on every startup.
+
 ## Dependencies
 
 #### Anaconda
