@@ -7,13 +7,19 @@ import sys
 sys.path.append("../audio-server")
 from audioserver import AudioServer
 
+sys.path.append("../PythonTwitchBotFramework")
+from twitchbot.bots.basebot import BaseBot
+from twitchbot.message import Message
+from twitchbot.shared import get_pubsub
+from twitchbot.pubsub.topics import PubSubTopics
+from twitchbot.pubsub.models import PubSubData
+from twitchbot.pubsub.point_redemption_model import PubSubPointRedemption
+
 from tts_queue import TTSQueue
 from automod_manager import AutomodManager
 import pypeln as pl
 from pypeln.utils import Partial,T
 from typing import List
-from twitchbot import BaseBot,Message,Channel
-from twitchbot import PubSubTopics,get_pubsub,PubSubData,PubSubPointRedemption
 from synthesizers.synthesizer import TTSSynthesizer
 import asyncio
 

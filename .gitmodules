@@ -1,0 +1,3 @@
+[submodule "PythonTwitchBotFramework"]
+	path = PythonTwitchBotFramework
+	url = https://github.com/rogermiranda1000/PythonTwitchBotFramework.git

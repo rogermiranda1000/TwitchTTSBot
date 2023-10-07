@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import annotations
-from twitchbot import PubSubPointRedemption
+
+import sys
+sys.path.append("../PythonTwitchBotFramework")
+from twitchbot.pubsub.point_redemption_model import PubSubPointRedemption
+
 from typing import Union,Any
 import datetime as dt
 import asyncio
@@ -70,8 +74,7 @@ class AutomodManager:
                 await self._search_for_redemption_pairs(legacy)
 
     async def on_channel_points_redemption(self, user: str, reward_id: str, channel: str):
-        # TODO we still don't have a way to fully relate this event with `on_pubsub_channel_points_redemption`;
-        #      we'll check the user, id and channel, but we can't relate with the `redemption_id`
+        # TODO check redeem id (from Message) instead of just the username
         async with self._list_notifier:
             self._legacy_pending.append(TimestampWrapper(LegacyRedeem(user, reward_id)))
             self._list_notifier.notify()

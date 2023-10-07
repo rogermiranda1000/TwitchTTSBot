@@ -37,7 +37,7 @@ If the install raises the error `Failed building wheel for pyworld`, run `python
 
 ##### Install
 
-- Run `python3 -m pip install PythonTwitchBotFramework==2.11.5`
+- Get the library (`git clone https://github.com/rogermiranda1000/PythonTwitchBotFramework.git`), and then install its dependencies (`cd PythonTwitchBotFramework && python3 -m pip install -r requirements.txt`)
 - For the bot dependencies, run `python3 -m pip install pypeln==0.4.9`
 
 ##### Creating the Twitch bot

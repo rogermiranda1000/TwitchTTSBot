@@ -1,8 +1,14 @@
+import sys
+sys.path.append("../PythonTwitchBotFramework")
+from twitchbot.enums import Event
+from twitchbot.event_util import forward_event
+from twitchbot.message import Message
+from twitchbot.pubsub.models import PubSubData
+from twitchbot.pubsub.point_redemption_model import PubSubPointRedemption
+
 import unittest
 import os, json
 from bot import TwitchTTSBot
-from twitchbot import Event,PubSubData,PubSubPointRedemption,Message
-from twitchbot import forward_event
 import asyncio
 from time import sleep
 
