@@ -1,6 +1,7 @@
 import unittest
+import os, json
 from bot import TwitchTTSBot
-from twitchbot import Event,PubSubData,PubSubPointRedemption
+from twitchbot import Event,PubSubData,PubSubPointRedemption,Message
 from twitchbot import forward_event
 import asyncio
 from time import sleep
@@ -11,6 +12,7 @@ class BotTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._bot = bot_factory.instantiate()
+        cls._channel = BotTests.__Channel()
         cls._bot.run_in_async_task()
 
         async def await_for_bot():
@@ -24,7 +26,21 @@ class BotTests(unittest.TestCase):
         pass # TODO close bot
 
     @staticmethod
-    def _GetRedeem(prompt: str = "This is a test.", user: str = 'userman2') -> dict:
+    def __RedeemId() -> str:
+        return "8a7da6dc-cb5c-42da-b522-8601e5126677"
+
+    @staticmethod
+    def __Channel() -> str:
+        config = None
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'configs/config.json')) as f:
+            config = json.load(f)
+
+        channel = config['channels'][0]
+        print(f"[v] Working on channel {channel}")
+        return channel
+
+    @staticmethod
+    def _GetRedeem(prompt: str, user: str) -> dict:
         return {
             "type": "MESSAGE",
             "data": {
@@ -43,7 +59,7 @@ class BotTests(unittest.TestCase):
                             \"channel_id\": \"35927458\",
                             \"redeemed_at\": \"2023-09-28T22:14:08.289959728Z\",
                             \"reward\": {
-                                \"id\": \"8a7da6dc-cb5c-42da-b522-8601e5126677\",
+                                \"id\": \"""" + BotTests.__RedeemId() + """\",
                                 \"channel_id\": \"35927458\",
                                 \"title\": \"""" + TwitchTTSBot._GetRedeemName() + """\",
                                 \"prompt\": \"test for pubsub custom reward with texts\",
@@ -92,12 +108,22 @@ class BotTests(unittest.TestCase):
         return PubSubPointRedemption(data)
 
     @staticmethod
-    def _GenerateEvent(redeem_data: PubSubPointRedemption):
-        legacy_redeem_msg = f'{redeem_data.user_login_name} redeemed reward {redeem_data.reward_id} in #todo'
-        forward_event(Event.on_channel_points_redemption, legacy_redeem_msg, redeem_data.reward_id)
+    def _GetLegacyRedeem(prompt: str, user: str, channel: str) -> str:
+        return f"@badge-info=;badges=premium/1;color=#00C2CC;custom-reward-id={BotTests.__RedeemId()};display-name={user};emotes=;first-msg=0;flags=;id=66460adc-9eba-4772-9aa1-601c790d74fc;mod=0;returning-chatter=0;room-id=35927458;subscriber=0;tmi-sent-ts=1696674771960;turbo=0;user-id=35927458;user-type= :{user}!{user}@{user}.tmi.twitch.tv PRIVMSG #{channel} :{prompt}"
+
+    @classmethod
+    def _GetLegacyRedeemData(cls, prompt: str, user: str, channel: str = None) -> Message:
+        if channel is None:
+            channel = cls._channel
+
+        return Message(BotTests._GetLegacyRedeem(prompt, user, channel), irc=cls._bot.irc, bot=cls._bot)
+
+    @classmethod
+    def _GenerateEvent(cls, redeem_data: PubSubPointRedemption):
+        forward_event(Event.on_channel_points_redemption, cls._GetLegacyRedeemData(redeem_data.user_input, redeem_data.user_login_name, cls._channel), redeem_data.reward_id, channel=cls._channel)
 
         data = redeem_data.data
-        forward_event(Event.on_pubsub_custom_channel_point_reward, data, redeem_data)
+        forward_event(Event.on_pubsub_custom_channel_point_reward, data, redeem_data, channel=cls._channel)
 
     def sleep(self, time: int):
         async def sleep_for():
@@ -191,8 +217,7 @@ class BotTests(unittest.TestCase):
 
         self.sleep(10) # let some time
 
-        legacy_redeem_msg = f'{data.user_login_name} redeemed reward {data.reward_id} in #todo'
-        forward_event(Event.on_channel_points_redemption, legacy_redeem_msg, data.reward_id)
+        forward_event(Event.on_channel_points_redemption, BotTests._GetLegacyRedeemData(data.user_input, data.user_login_name), data.reward_id)
 
         self.sleep(15) # let it process
 
@@ -229,8 +254,7 @@ class BotTests(unittest.TestCase):
         
         self.sleep(10) # let some time
 
-        legacy_redeem_msg = f'{data.user_login_name} redeemed reward {data.reward_id} in #todo'
-        forward_event(Event.on_channel_points_redemption, legacy_redeem_msg, data.reward_id)
+        forward_event(Event.on_channel_points_redemption, BotTests._GetLegacyRedeemData(data.user_input, data.user_login_name), data.reward_id)
 
         # don't stop until done
         self.sleep(20) # TODO get when bot is done

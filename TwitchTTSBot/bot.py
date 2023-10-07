@@ -60,13 +60,7 @@ class TwitchTTSBot(BaseBot):
             await self._banned_user(timeout_search.group(3), timeout_search.group(2), sys.maxsize if timeout_search.group(1) is None else int(timeout_search.group(1)))
 
     async def on_channel_points_redemption(self, msg: Message, _: str):
-        # redeem: <user> redeemed reward <reward ID> in #<channel>
-        redeem = r'^(\S+) redeemed reward (\S+) in #(\S+)$'
-        redeem_search = re.search(redeem, msg)
-
-        if redeem_search:
-            await self._automod_manager.on_channel_points_redemption(redeem_search.group(1), redeem_search.group(2), redeem_search.group(3))
-
+        await self._automod_manager.on_channel_points_redemption(msg.author, msg.reward, msg.channel_name)
         print(f"[v] Legacy point redeem call: {msg}")
     
     async def on_pubsub_custom_channel_point_reward(self, _: PubSubData, data: PubSubPointRedemption):
