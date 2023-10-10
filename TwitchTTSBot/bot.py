@@ -14,6 +14,7 @@ from twitchbot.shared import get_pubsub
 from twitchbot.pubsub.topics import PubSubTopics
 from twitchbot.pubsub.models import PubSubData
 from twitchbot.pubsub.point_redemption_model import PubSubPointRedemption
+#from twitchbot.util.twitch_api_util import get_channel_rewards
 
 from tts_queue import TTSQueue
 from automod_manager import AutomodManager
@@ -68,6 +69,8 @@ class TwitchTTSBot(BaseBot):
     async def on_channel_points_redemption(self, msg: Message, _: str):
         await self._automod_manager.on_channel_points_redemption(msg.author, msg.reward, msg.channel_name)
         print(f"[v] Legacy point redeem call: {msg}")
+
+        #print(str(await get_channel_rewards(msg.channel_name)))
     
     async def on_pubsub_custom_channel_point_reward(self, _: PubSubData, data: PubSubPointRedemption):
         if data.reward_title == self._redeem_name:
