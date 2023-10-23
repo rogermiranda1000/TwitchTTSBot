@@ -87,7 +87,7 @@ def _splits_to_segments(found: List[str], audios: dict, segment: GeneratedTTSSeg
         into.append(e)
     return into
 
-def _get_tts_models() -> List[RVCTTSSynthesizer]:
+def _get_tts_models() -> List[TTSSynthesizer]:
     r = []
 
     models_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../rvc-tts-webui/weights')
@@ -106,9 +106,35 @@ def _get_tts_models() -> List[RVCTTSSynthesizer]:
 
         r.append(RVCTTSSynthesizer(RVCModel(voice, model_name, data['voice'], pitch_shift=pitch_shift)))
 
+    # get other models
+    r += _get_models_folder()
+
     return r
 
-def _generate_voice_splits(segment: TTSSegment, models: List[RVCTTSSynthesizer]) -> List[TTSSegment]:
+def _get_models_folder() -> List[TTSSynthesizer]:
+    r = []
+
+    models_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models')
+    python_models_files = [ 'models.' + f.name[:-len('.py')] for f in os.scandir(models_folder) if f.is_file() and f.name.endswith('.py') ]
+
+    for python_models_file in python_models_files:
+        module = importlib.import_module(python_models_file)
+
+        # TODO pretty sure this can be enhanced somehow
+        # TODO check how the twitch bot did it https://github.com/sharkbound/PythonTwitchBotFramework/blob/8eb95864e3744705a057130e8193248328ccabe7/twitchbot/modloader.py#L334
+        for attr in dir(module):
+            potential_class = getattr(module, attr)
+            if type(potential_class) is type and issubclass(potential_class, TTSSynthesizer):
+                if attr == 'FakeSynthesizer' or attr == 'TTSSynthesizer' or attr == 'RVCTTSSynthesizer':
+                    continue
+                
+                print(f"[v] Class {attr} seems to be a TTSSynthesizer")
+                e = potential_class()
+                r.append(e)
+
+    return r
+
+def _generate_voice_splits(segment: TTSSegment, models: List[TTSSynthesizer]) -> List[TTSSegment]:
     if not isinstance(segment, GeneratedTTSSegment):
         raise ValueError("This function was mean to be used with a single text segment")
 
@@ -119,7 +145,7 @@ def _generate_voice_splits(segment: TTSSegment, models: List[RVCTTSSynthesizer])
         prev = r
         r = []
 
-        regex_pattern = re.compile(r'(?: |^)' + re.escape(model.model.alias) + r':(?: |$)', re.IGNORECASE) # find pattern (sanitized), followed by spaces or begin/end
+        regex_pattern = re.compile(r'(?: |^)' + re.escape(model.model_name) + r':(?: |$)', re.IGNORECASE) # find pattern (sanitized), followed by spaces or begin/end
         for segment in prev:
             split = re.split(regex_pattern, segment.text)
 

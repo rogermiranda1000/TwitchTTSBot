@@ -31,6 +31,7 @@ class RVCModel:
 # It will copy an audio file each time `synthesize` is called
 class RVCTTSSynthesizer(TTSSynthesizer):
     def __init__(self, model: RVCModel):
+        super().__init__(model._alias)
         self._model = model
 
     @property
