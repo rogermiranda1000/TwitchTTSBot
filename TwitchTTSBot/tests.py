@@ -290,5 +290,13 @@ class BotTests(unittest.TestCase):
         # don't stop until done
         self.sleep(15) # TODO get when bot is done
 
+    def test_custom_synthetizer(self):
+        print("[v] Launching custom synthetizer")
+        data = BotTests._GetRedeemData("furry: Hello there!")
+        BotTests._GenerateEvent(data)
+
+        # don't stop until done
+        self.sleep(15) # TODO get when bot is done
+
 if __name__ == '__main__':
     unittest.main()
