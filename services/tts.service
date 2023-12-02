@@ -6,6 +6,8 @@ After=network.target tts-web.service
 Type=simple
 WorkingDirectory=/home/rogermiranda1000/TwitchTTSBot/TwitchTTSBot
 ExecStart=/home/rogermiranda1000/anaconda3/envs/tts/bin/python3 -u bot.py
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

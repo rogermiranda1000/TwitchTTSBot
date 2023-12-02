@@ -105,14 +105,7 @@ class TwitchTTSBot(BaseBot):
 
 def main():
     import bot_factory
-    exit = False
-    while not exit:
-        try:
-            bot_factory.instantiate().run()
-        except KeyboardInterrupt:
-            exit = True
-        except Exception:
-            pass
+    bot_factory.instantiate().run()
 
 if __name__ == '__main__':
     main()
