@@ -111,6 +111,8 @@ def main():
             bot_factory.instantiate().run()
         except KeyboardInterrupt:
             exit = True
+        except Exception:
+            pass
 
 if __name__ == '__main__':
     main()
