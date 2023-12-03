@@ -95,6 +95,6 @@ Optional additional properties:
 
 ##### Generating the SSL credentials
 
-Inside the `TwitchTTSBot/` folder, run `openssl req -new -x509 -keyout key.pem -out server.pem -days 365 -nodes`.
+Inside the `audio-server/` folder, run `openssl req -new -x509 -keyout key.pem -out server.pem -days 365 -nodes`.
 
-You can also get a **secure** SSL credentials pointing to an existant domain by following the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal). Note: you'll have to open the port 80 before running the command.
+You can also get a **secure** SSL credentials pointing to an existant domain by following the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal), and then renew it every few months with `sudo certbot renew`; you'll have to copy `privkey.pem` into `./key.pem`, and `cert.pem` into `./server.pem`. Note: you'll have to open the port 80 before running the command.

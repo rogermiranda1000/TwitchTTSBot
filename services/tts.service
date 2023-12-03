@@ -7,7 +7,7 @@ Type=simple
 WorkingDirectory=/home/rogermiranda1000/TwitchTTSBot/TwitchTTSBot
 ExecStart=/home/rogermiranda1000/anaconda3/envs/tts/bin/python3 -u bot.py
 Restart=on-failure
-RestartSec=5s
+RestartSec=20s
 
 [Install]
 WantedBy=multi-user.target
