@@ -48,6 +48,9 @@ class TwitchTTSBot(BaseBot):
         access_token = TwitchTTSBot.__GetAccessToken()
         await get_pubsub().listen_to_channel(access_token[0], [ PubSubTopics.channel_points ], access_token=access_token[1])
 
+    async def get_command_from_msg(self, msg: Message) -> 'Optional[Command]':
+        return None # disable all commands
+
     async def on_raw_message(self, msg: Message):
         #print(">>> " + str(msg))
 
