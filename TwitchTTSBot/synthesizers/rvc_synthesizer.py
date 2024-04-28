@@ -3,6 +3,7 @@
 
 import os, sys
 import asyncio
+import logging
 from .synthesizer import TTSSynthesizer
 
 class RVCModel:
@@ -39,10 +40,15 @@ class RVCTTSSynthesizer(TTSSynthesizer):
         return self._model
 
     async def synthesize(self, text: str, out: str):
-        # calling `infere` directly won't work for permissions issue (needs to be sudo)
         python_full_path = sys.executable
         infere_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../rvc-tts-webui/infere.py')
-        proc = await asyncio.create_subprocess_exec('sudo',python_full_path,infere_path, '--model', self._model.model_name, '--text', text, '--out', out, '--voice', self._model.model_voice,
+        proc = await asyncio.create_subprocess_exec(python_full_path,infere_path, '--model', self._model.model_name, '--text', text, '--out', out, '--voice', self._model.model_voice,
                                                         '--transpose', str(self._model.pitch_shift),
                                                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         stdout, stderr = await proc.communicate()
+
+        print(f"[v] Done synthesizing '{text}'")
+        if len(stdout.decode('utf-8').strip()) > 0:
+            print("[v] Output of inference command:\n" + stdout.decode('utf-8'))
+        if len(stderr.decode('utf-8').strip()) > 0:
+            print("[e] Got errors while running the inference command:\n" + stderr.decode('utf-8'))

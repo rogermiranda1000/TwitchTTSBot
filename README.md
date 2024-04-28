@@ -15,7 +15,7 @@ The bot will start the website [http://127.0.0.1:7890/?token=admin](http://127.0
 
 #### Anaconda
 
-- Install anaconda and gcc
+- Install anaconda
 - Create the conda environment: `conda create -n tts python=3.9`, and then activate it with `conda activate tts`
 - Install pyTorch (if you want to use GPU): `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia -y`
 
@@ -23,9 +23,11 @@ The bot will start the website [http://127.0.0.1:7890/?token=admin](http://127.0
 
 ##### Install
 
+- Install `ffmpeg`
 - Get the repo: `git clone https://github.com/litagin02/rvc-tts-webui.git && cd rvc-tts-webui`
 - Download the models: `curl -L -O https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/hubert_base.pt ; curl -L -O https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/rmvpe.pt`
 - Install the dependencies: `python3 -m pip install -r requirements.txt`
+- Install some more dependencies so the bot can call it: `python3 -m pip install gradio-client==0.5.1`
 
 If the install raises the error `Failed building wheel for pyworld`, run `python3 -m pip install numpy pyworld --no-build-isolation`
 
@@ -108,4 +110,4 @@ Note: you may have to open port 80 on your router for the certbot certification.
 
 ## Run the tests
 
-If you want to try the tests, start the website and run `sudo /home/rogermiranda1000/anaconda3/envs/tts/bin/python3 tests.py`
+If you want to try the tests, start `app.py`, and inside TwitchTTSBot folder and with the `tts` environment enabled, run `python3 tests.py`

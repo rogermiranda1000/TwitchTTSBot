@@ -99,6 +99,7 @@ def infere(model: str, text: str, out: str, speed: int = 0, transpose: int = 0, 
     :param speaker:     Base speaker to infere the TTS (check `get_speakers()` list)
     """
     client = Client("http://127.0.0.1:7860/")
+    print(f"[v] Synthesizing '{text}'...")
     result = client.predict(model,
                     speed,
                     text,
@@ -112,8 +113,10 @@ def infere(model: str, text: str, out: str, speed: int = 0, transpose: int = 0, 
 
     audio = result[-1]
     try:
+        print(f"[v] Done synthesizing (result on {audio}); copying file into {out}...")
         shutil.move(audio, out)
-    except Exception:
+    except Exception as ex:
+        print(f"[w] An exception has occurred while trying to synthetize TTS; generating an empty audio...")
         AudioSegment.silent(duration=10).export(out_f = out, format = "wav")
 
 def main():
