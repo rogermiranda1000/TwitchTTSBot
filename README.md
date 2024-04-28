@@ -9,6 +9,8 @@ Once you've done all the steps in [dependencies](#dependencies) you can run the 
 
 To run the bot you'll have to first run (inside the `tts` conda environment) `cd rvc-tts-webui && python3 app.py`, and then (simultaneously) `cd TwitchTTSBot && python3 bot.py`. Check the README inside the `services` folder to auto-run those steps on every startup.
 
+The bot will start the website [http://127.0.0.1:7890/?token=admin](http://127.0.0.1:7890/?token=admin) (or [https://127.0.0.1:7890/?token=admin](https://127.0.0.1:7890/?token=admin) if you have a secure certificate). The auth token can be changed in the config file; by default it is `admin`.
+
 ## Dependencies
 
 #### Anaconda
@@ -93,8 +95,8 @@ Optional additional properties:
 
 - Run `python3 -m pip install Flask-SocketIO==4.3.1 python-engineio==3.13.2 python-socketio==4.6.0`
 
-##### Generating the SSL credentials
+##### [Optional] Generating the SSL credentials
 
-Inside the `TwitchTTSBot/` folder, run `openssl req -new -x509 -keyout key.pem -out server.pem -days 365 -nodes`.
+If you want to use this program securely (using https) with OBS you'll need a secure certificate. **Attention: in order to get a secure certificate you'll need a domain at your name, with an IP pointing to the server where you launch TwitchTTSBot. If you don't have such a thing, ignore this section and use the website with http.**
 
-You can also get a **secure** SSL credentials pointing to an existant domain by following the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal). Note: you'll have to open the port 80 before running the command.
+Follow the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal). Note: you'll have to open the port 80 before running the command.
