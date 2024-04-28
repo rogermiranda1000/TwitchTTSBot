@@ -46,7 +46,9 @@ If the install raises the error `Failed building wheel for pyworld`, run `python
 
 - Create a Twitch account to be used as a bot
 - [Create a new app](https://dev.twitch.tv/console/apps/create). Set a name, `Loyalty Tool` as category, and (if you don't want to use it) `http://localhost` as OAuth redirect
-- In order to get the OAuth token have to enter the login link (while being logged in in the bot account), and allow it. To generate the login link download `https://github.com/sharkbound/PythonTwitchBotFramework/blob/master/util/token_utils.py` and run `print(generate_irc_oauth('<app id>', 'http://localhost'))`. Once you allow it you'll be redirected to `localhost`; you'll have to copy the `access_token` GET param in the URL (that's the OAuth token).
+- In order to get the OAuth token have to enter the login link **(while being logged in in the bot account)**, and allow it. To generate the login link download `https://github.com/sharkbound/PythonTwitchBotFramework/blob/master/util/token_utils.py` and run `print(generate_irc_oauth('<app id>', 'http://localhost'))`. Once you allow it you'll be redirected to `localhost`; you'll have to copy the `access_token` GET param in the URL (that's the OAuth token).
+
+Note: after some months the token will expire, and you'll have to re-run the last step and update the OAuth token.
 
 ##### Setting up the stream Twitch account
 
@@ -99,4 +101,11 @@ Optional additional properties:
 
 If you want to use this program securely (using https) with OBS you'll need a secure certificate. **Attention: in order to get a secure certificate you'll need a domain at your name, with an IP pointing to the server where you launch TwitchTTSBot. If you don't have such a thing, ignore this section and use the website with http.**
 
-Follow the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal), and then renew it every few months with `sudo certbot renew`; you'll have to copy `privkey.pem` into `./key.pem`, and `cert.pem` into `./server.pem`. Note: you'll have to open the port 80 before running the command.
+Follow the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal), and then renew it every few months with `sudo certbot renew --force-renewal`; you'll have to copy `privkey.pem` into `audio-server/key.pem`, and `cert.pem` into `audio-server/server.pem`. Note: you'll have to open the port 80 before running the command.
+
+Note: you may have to open port 80 on your router for the certbot certification.
+
+
+## Run the tests
+
+If you want to try the tests, start the website and run `sudo /home/rogermiranda1000/anaconda3/envs/tts/bin/python3 tests.py`
