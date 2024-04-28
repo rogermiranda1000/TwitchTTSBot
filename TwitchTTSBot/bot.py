@@ -7,6 +7,7 @@ import sys
 sys.path.append("../audio-server")
 from audioserver import AudioServer
 
+import os
 from tts_queue import TTSQueue
 from automod_manager import AutomodManager
 import pypeln as pl
