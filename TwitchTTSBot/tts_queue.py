@@ -27,7 +27,7 @@ class TTSQueue:
         self._serve_to = serve_to
         self._default_synthesizer = default_synthesizer
         
-        self._audios_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../audio-server/audios/')
+        self._audios_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'audio-server', 'audios')
 
         if pre_inference is None:
             pre_inference = []

@@ -16,7 +16,7 @@ class WebServer(AudioServer):
     def __init__(self, secret_token: str = 'admin', port: int = 7890):
         super().__init__(secret_token, port)
         self._base_path = os.path.dirname(os.path.abspath(__file__))
-        self._audios_path = os.path.join(self._base_path, './audios/')
+        self._audios_path = os.path.join(self._base_path, 'audios')
         self._currently_playing_timeout_task = None
 
     async def start(self):

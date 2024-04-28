@@ -22,7 +22,7 @@ from tts_queue import TTSQueueEntry, TTSSegment, GeneratedTTSSegment, Pregenerat
 @cache
 def _get_config_json() -> json:
     config = None
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'configs/config.json')) as f:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'configs', 'config.json')) as f:
         config = json.load(f)
     return config
 
@@ -80,7 +80,7 @@ def _splits_to_segments(found: List[str], audios: dict, segment: GeneratedTTSSeg
             while 'alias' in audio_entry:
                 audio_entry = audios[ audio_entry['alias'] ]
             audio_file = random.choice( audio_entry['files'] )
-            audio_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'audios/' + audio_file)
+            audio_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'audios', audio_file)
 
             e = PregeneratedTTSSegment(copy_from=audio_path)
 
@@ -90,7 +90,7 @@ def _splits_to_segments(found: List[str], audios: dict, segment: GeneratedTTSSeg
 def _get_tts_models() -> List[TTSSynthesizer]:
     r = []
 
-    models_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../rvc-tts-webui/weights')
+    models_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'rvc-tts-webui', 'weights')
     models = [ f.name for f in os.scandir(models_folder) if f.is_dir() ]
     print(f"[v] Found models in folder: {models}")
 

@@ -41,7 +41,7 @@ class RVCTTSSynthesizer(TTSSynthesizer):
 
     async def synthesize(self, text: str, out: str):
         python_full_path = sys.executable
-        infere_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../rvc-tts-webui/infere.py')
+        infere_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'rvc-tts-webui', 'infere.py')
         proc = await asyncio.create_subprocess_exec(python_full_path,infere_path, '--model', self._model.model_name, '--text', text, '--out', out, '--voice', self._model.model_voice,
                                                         '--transpose', str(self._model.pitch_shift),
                                                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)

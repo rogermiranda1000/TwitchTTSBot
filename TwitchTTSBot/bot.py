@@ -86,7 +86,7 @@ class TwitchTTSBot(BaseBot):
     @staticmethod
     def __GetAccessToken() -> Tuple[str,str]:
         config = None
-        with open('configs/config.json') as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'configs', 'config.json')) as f:
             config = json.load(f)
 
         return (config['channels'][0], config['pubsub'])
@@ -94,7 +94,7 @@ class TwitchTTSBot(BaseBot):
     @staticmethod
     def _GetRedeemName() -> str:
         config = None
-        with open('configs/config.json') as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'configs', 'config.json')) as f:
             config = json.load(f)
 
         return config['redeem']
