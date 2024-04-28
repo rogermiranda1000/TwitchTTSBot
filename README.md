@@ -9,11 +9,13 @@ Once you've done all the steps in [dependencies](#dependencies) you can run the 
 
 To run the bot you'll have to first run (inside the `tts` conda environment) `cd rvc-tts-webui && python3 app.py`, and then (simultaneously) `cd TwitchTTSBot && python3 bot.py`. Check the README inside the `services` folder to auto-run those steps on every startup.
 
+The bot will start the website [http://127.0.0.1:7890/?token=admin](http://127.0.0.1:7890/?token=admin) (or [https://127.0.0.1:7890/?token=admin](https://127.0.0.1:7890/?token=admin) if you have a secure certificate). The auth token can be changed in the config file; by default it is `admin`.
+
 ## Dependencies
 
 #### Anaconda
 
-- Install anaconda and gcc
+- Install anaconda
 - Create the conda environment: `conda create -n tts python=3.9`, and then activate it with `conda activate tts`
 - Install pyTorch (if you want to use GPU): `conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia -y`
 
@@ -21,9 +23,11 @@ To run the bot you'll have to first run (inside the `tts` conda environment) `cd
 
 ##### Install
 
+- Install `ffmpeg`
 - Get the repo: `git clone https://github.com/litagin02/rvc-tts-webui.git && cd rvc-tts-webui`
 - Download the models: `curl -L -O https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/hubert_base.pt ; curl -L -O https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/rmvpe.pt`
 - Install the dependencies: `python3 -m pip install -r requirements.txt`
+- Install some more dependencies so the bot can call it: `python3 -m pip install gradio-client==0.5.1`
 
 If the install raises the error `Failed building wheel for pyworld`, run `python3 -m pip install numpy pyworld --no-build-isolation`
 
@@ -44,7 +48,9 @@ If the install raises the error `Failed building wheel for pyworld`, run `python
 
 - Create a Twitch account to be used as a bot
 - [Create a new app](https://dev.twitch.tv/console/apps/create). Set a name, `Loyalty Tool` as category, and (if you don't want to use it) `http://localhost` as OAuth redirect
-- In order to get the OAuth token have to enter the login link (while being logged in in the bot account), and allow it. To generate the login link download `https://github.com/sharkbound/PythonTwitchBotFramework/blob/master/util/token_utils.py` and run `print(generate_irc_oauth('<app id>', 'http://localhost'))`. Once you allow it you'll be redirected to `localhost`; you'll have to copy the `access_token` GET param in the URL (that's the OAuth token).
+- In order to get the OAuth token have to enter the login link **(while being logged in in the bot account)**, and allow it. To generate the login link download `https://github.com/sharkbound/PythonTwitchBotFramework/blob/master/util/token_utils.py` and run `print(generate_irc_oauth('<app id>', 'http://localhost'))`. Once you allow it you'll be redirected to `localhost`; you'll have to copy the `access_token` GET param in the URL (that's the OAuth token).
+
+Note: after some months the token will expire, and you'll have to re-run the last step and update the OAuth token.
 
 ##### Setting up the stream Twitch account
 
@@ -93,8 +99,15 @@ Optional additional properties:
 
 - Run `python3 -m pip install Flask-SocketIO==4.3.1 python-engineio==3.13.2 python-socketio==4.6.0`
 
-##### Generating the SSL credentials
+##### [Optional] Generating the SSL credentials
 
-Inside the `TwitchTTSBot/` folder, run `openssl req -new -x509 -keyout key.pem -out server.pem -days 365 -nodes`.
+If you want to use this program securely (using https) with OBS you'll need a secure certificate. **Attention: in order to get a secure certificate you'll need a domain at your name, with an IP pointing to the server where you launch TwitchTTSBot. If you don't have such a thing, ignore this section and use the website with http.**
 
-You can also get a **secure** SSL credentials pointing to an existant domain by following the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal). Note: you'll have to open the port 80 before running the command.
+Follow the steps shown in [certbot instructions](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal), and then renew it every few months with `sudo certbot renew --force-renewal`; you'll have to copy `privkey.pem` into `audio-server/key.pem`, and `cert.pem` into `audio-server/server.pem`. Note: you'll have to open the port 80 before running the command.
+
+Note: you may have to open port 80 on your router for the certbot certification.
+
+
+## Run the tests
+
+If you want to try the tests, start `app.py`, and inside TwitchTTSBot folder and with the `tts` environment enabled, run `python3 tests.py`

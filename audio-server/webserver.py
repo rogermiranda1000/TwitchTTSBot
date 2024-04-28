@@ -10,6 +10,7 @@ import os
 import asyncio
 from pathlib import Path
 from pydub import AudioSegment
+import logging
 
 class WebServer(AudioServer):
     def __init__(self, secret_token: str = 'admin', port: int = 7890):
@@ -71,14 +72,20 @@ class WebServer(AudioServer):
         # Audios
         self._app.router.add_get('/audios/{audio}', resource)
 
+        extra_args = {}
         # https
-        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        ssl_context.load_cert_chain(os.path.join(self._base_path, 'server.pem'), os.path.join(self._base_path, 'key.pem'))
+        server_pem_path = os.path.join(self._base_path, 'server.pem')
+        key_pem_path = os.path.join(self._base_path, 'key.pem')
+        if os.path.isfile(server_pem_path) and os.path.isfile(key_pem_path):
+            logging.info("Got secure certificate; enabling under https...")
+            ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ssl_context.load_cert_chain(server_pem_path, key_pem_path)
+            extra_args['ssl_context'] = ssl_context
 
         # We kick off our server
         self._runner = web.AppRunner(self._app)
         await self._runner.setup()
-        self._site = web.TCPSite(self._runner, port=self._port, ssl_context=ssl_context)    
+        self._site = web.TCPSite(self._runner, port=self._port, **extra_args)    
         await self._site.start()
     
     async def shutdown(self):
